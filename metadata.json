@@ -1,0 +1,5 @@
+{
+  "name": "InkGenius Pro",
+  "description": "AI-powered tattoo design suite featuring stencil extraction, AR try-on, and smart cover-up generation.",
+  "requestFramePermissions": []
+}
