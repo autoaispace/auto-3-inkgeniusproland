@@ -93,7 +93,7 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
           className="w-full h-full object-cover opacity-70"
         />
         {/* Reduced darken to make background more visible */}
-        <div className="absolute inset-0 bg-black/50 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-black/75 mix-blend-multiply" />
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/60" />
       </div>
       
@@ -106,8 +106,8 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
         {/* 1. HEADLINES (Simplified) */}
         {!isModal && (
           <div className="text-center mb-10 md:mb-16 relative">
-             <h1 className="text-2xl md:text-4xl lg:text-5xl font-black uppercase tracking-tighter leading-[0.9] mb-4 drop-shadow-2xl text-premium">
-             The Professional AI Tattoo Generator
+             <h1 className="text-5xl md:text-6xl lg:text-6xl font-black  tracking-tighter leading-[0.9] mb-4 drop-shadow-2xl text-premium">
+             Pro AI Tattoo Generator
              </h1>
              <p className="text-zinc-400 font-serif italic text-lg md:text-2xl max-w-3xl mx-auto leading-relaxed">
              Design. Visualize. Stencil. Built exclusively for the tattoo community.
