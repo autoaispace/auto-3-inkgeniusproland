@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { PenTool, Layers, Shirt, Eraser, Upload, Sparkles, MoveRight, Camera, Settings } from 'lucide-react';
 import { TabMode } from '../types';
 import { InkBackground } from './InkBackground';
+import { trackGenerationEvent } from '../utils/analytics';
 
 interface HeroProps {
   activeTab: TabMode;
@@ -70,20 +71,9 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
   };
 
   const handleGenerateClick = () => {
-    // Send GTM event for Design generation
-    if (activeTab === TabMode.DESIGN) {
-      if (typeof window !== 'undefined') {
-        (window as any).dataLayer = (window as any).dataLayer || [];
-        (window as any).dataLayer.push({
-          event: 'ai_generate',
-          feature: 'generate',
-          page: isModal ? 'modal' : 'landing',
-          position: 'hero',
-          tab: 'design',
-          action: 'Generate Design'
-        });
-      }
-    }
+    // Send unified GTM event for all tabs
+    const tabName = activeConfig.label;
+    trackGenerationEvent(tabName, activeConfig.action, isModal);
     onGenerate();
   };
 
