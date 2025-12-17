@@ -61,14 +61,14 @@ export const Showcase: React.FC = () => {
            <GridItem 
              title="Color Packing"
              subtitle="Saturation Preview"
-             beforeImg="/images/t1.jpg"
+             beforeImg="/images/t1.png"
              afterImg="/images/t11.jpg"
            />
            <GridItem 
              title="Stencil Extraction"
              subtitle="Clean Line Work"
              beforeImg="/images/t2.png"
-             afterImg="/images/t22.png"
+             afterImg="/images/t22.jpg"
            />
            <GridItem 
              title="Anatomy Mapping"
