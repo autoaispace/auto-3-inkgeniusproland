@@ -70,7 +70,7 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
       {/* Darkened background to allow Spotlight (mix-blend-screen) to "illuminate" it */}
       <div className="absolute inset-0 z-0">
         <img 
-          src="https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?q=80&w=2000&auto=format&fit=crop" 
+          src="/images/hero.png" 
           alt="Tattoo Art Background" 
           className="w-full h-full object-cover opacity-60"
         />
