@@ -59,28 +59,28 @@ export const Showcase: React.FC = () => {
        {/* 2x2 Full Screen Grid */}
        <div className="flex-grow grid grid-cols-1 md:grid-cols-2 grid-rows-2 gap-0">
            <GridItem 
-             title="Stencil Extraction"
-             subtitle="Clean Line Work"
-             beforeImg="https://images.unsplash.com/photo-1590549023428-2d2c1630c797?q=80&w=1000&auto=format&fit=crop"
-             afterImg="https://images.unsplash.com/photo-1598371839696-5c5bb00bdc28?q=80&w=1000&auto=format&fit=crop"
+             title="Color Packing"
+             subtitle="Saturation Preview"
+             beforeImg="/images/t1.jpg"
+             afterImg="/images/t11.jpg"
            />
            <GridItem 
-             title="Anatomy Mapping"
-             subtitle="AR Body Fit"
-             beforeImg="https://images.unsplash.com/photo-1611590027211-14fc514df372?q=80&w=1000&auto=format&fit=crop"
-             afterImg="https://images.unsplash.com/photo-1562962230-16e4623d36e6?q=80&w=1000&auto=format&fit=crop"
+             title="Stencil Extraction"
+             subtitle="Clean Line Work"
+             beforeImg="/images/t2.png"
+             afterImg="/images/t22.png"
            />
            <GridItem 
              title="Cover-Up Logic"
              subtitle="Density Calculation"
-             beforeImg="https://images.unsplash.com/photo-1612459791469-808603612eb9?q=80&w=1000&auto=format&fit=crop"
-             afterImg="https://images.unsplash.com/photo-1550537687-c913840e3819?q=80&w=1000&auto=format&fit=crop"
+             beforeImg="/images/t4.png"
+             afterImg="/images/t44.jpg"
            />
            <GridItem 
-             title="Color Packing"
-             subtitle="Saturation Preview"
-             beforeImg="https://images.unsplash.com/photo-1542831371-29b0f74f9713?q=80&w=1000&auto=format&fit=crop"
-             afterImg="https://images.unsplash.com/photo-1606596489394-4c59a607147c?q=80&w=1000&auto=format&fit=crop"
+             title="Anatomy Mapping"
+             subtitle="AR Body Fit"
+             beforeImg="/images/t3.png"
+             afterImg="/images/t33.png"
            />
        </div>
     </section>
