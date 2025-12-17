@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { PenTool, Layers, Shirt, Eraser, Upload, Sparkles, MoveRight, Camera, Settings } from 'lucide-react';
 import { TabMode } from '../types';
@@ -59,14 +59,32 @@ const Screw = ({ className }: { className?: string }) => (
 
 export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate, isModal = false }) => {
   const activeConfig = tabConfig[activeTab];
+  const [mousePosition, setMousePosition] = useState({ x: 0, y: 0 });
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
+    const rect = e.currentTarget.getBoundingClientRect();
+    setMousePosition({ 
+      x: e.clientX - rect.left, 
+      y: e.clientY - rect.top 
+    });
+  };
 
   return (
     <section 
       id={isModal ? undefined : 'suite'}
+      onMouseMove={handleMouseMove}
       className={`relative w-full h-full flex flex-col justify-center items-center overflow-hidden bg-black select-none ${isModal ? 'p-0' : 'pt-0'}`}
     >
       
       {/* --- BACKGROUND IMAGE & OVERLAY --- */}
+      {/* Interactive Spotlight Effect */}
+      <div 
+        className="absolute inset-0 z-[5] pointer-events-none mix-blend-overlay"
+        style={{
+          background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(255,255,255,0.4), transparent 40%)`
+        }}
+      />
+
       {/* Darkened background to allow Spotlight (mix-blend-screen) to "illuminate" it */}
       <div className="absolute inset-0 z-0">
         <img 
@@ -83,7 +101,7 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
       <InkBackground />
 
       {/* Main Content Container: If modal, take full width/height without padding constraints */}
-      <div className={`relative z-10 w-full h-full flex flex-col justify-center ${isModal ? '' : 'max-w-7xl mx-auto px-6'}`}>
+      <div className={`relative z-10 w-full h-full flex flex-col justify-center ${isModal ? '' : 'max-w-6xl mx-auto px-6'}`}>
         
         {/* 1. HEADLINES (Simplified) */}
         {!isModal && (
