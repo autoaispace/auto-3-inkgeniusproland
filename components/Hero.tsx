@@ -106,11 +106,11 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
         {/* 1. HEADLINES (Simplified) */}
         {!isModal && (
           <div className="text-center mb-10 md:mb-16 relative">
-             <h1 className="text-6xl md:text-8xl lg:text-9xl font-black uppercase tracking-tighter leading-[0.9] mb-4 drop-shadow-2xl text-premium">
-               InkGenius
+             <h1 className="text-2xl md:text-4xl lg:text-5xl font-black uppercase tracking-tighter leading-[0.9] mb-4 drop-shadow-2xl text-premium">
+             The Professional AI Tattoo Generator
              </h1>
-             <p className="text-zinc-400 font-serif italic text-xl md:text-3xl max-w-3xl mx-auto leading-relaxed">
-               The Operating System for Modern Tattooing.
+             <p className="text-zinc-400 font-serif italic text-lg md:text-2xl max-w-3xl mx-auto leading-relaxed">
+             Design. Visualize. Stencil. Built exclusively for the tattoo community.
              </p>
           </div>
         )}
