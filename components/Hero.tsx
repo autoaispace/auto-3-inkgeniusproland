@@ -90,11 +90,11 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
         <img 
           src="/images/hero.png" 
           alt="Tattoo Art Background" 
-          className="w-full h-full object-cover opacity-60"
+          className="w-full h-full object-cover opacity-70"
         />
-        {/* Stronger darken to make spotlight pop */}
-        <div className="absolute inset-0 bg-black/70 mix-blend-multiply" />
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/40 to-black/80" />
+        {/* Reduced darken to make background more visible */}
+        <div className="absolute inset-0 bg-black/50 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/30 to-black/60" />
       </div>
       
       {/* Atmosphere */}
@@ -223,7 +223,7 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
                         ) : activeTab === TabMode.DESIGN ? (
                            <div className="flex-grow relative group">
                               <textarea 
-                                className="w-full h-full bg-transparent text-3xl md:text-5xl font-black text-white/90 placeholder-zinc-800 focus:outline-none resize-none leading-[1.1] tracking-tighter font-sans uppercase"
+                                className="w-full h-full bg-transparent text-3xl md:text-5xl font-black text-white/90 placeholder-zinc-800 focus:outline-none resize-none leading-[1.1] tracking-tighter font-sans"
                                 placeholder={activeConfig.placeholder}
                                 autoFocus
                               />
