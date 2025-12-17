@@ -62,6 +62,7 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
 
   return (
     <section 
+      id={isModal ? undefined : 'suite'}
       className={`relative w-full h-full flex flex-col justify-center items-center overflow-hidden bg-black select-none ${isModal ? 'p-0' : 'pt-0'}`}
     >
       

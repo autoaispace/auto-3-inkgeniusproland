@@ -59,7 +59,7 @@ export const Gallery: React.FC = () => {
   const rightLog = currentLogs[1];
 
   return (
-    <section className="w-full h-screen bg-[#080808] flex flex-col items-center justify-center relative overflow-hidden p-6">
+    <section id="gallery" className="w-full h-screen bg-[#080808] flex flex-col items-center justify-center relative overflow-hidden p-6">
        
        {/* High-End Desk Texture */}
        <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,#1a1a1a_0%,#000000_100%)] opacity-100"></div>

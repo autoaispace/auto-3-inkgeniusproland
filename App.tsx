@@ -9,9 +9,14 @@ import { Footer } from './components/Footer';
 import { LoadingScreen } from './components/LoadingScreen';
 import { EmailModal } from './components/EmailModal';
 import { WaitlistModal } from './components/WaitlistModal';
+import { PrivacyPolicy } from './components/PrivacyPolicy';
+import { TermsOfService } from './components/TermsOfService';
+import { ContactSupport } from './components/ContactSupport';
 import { AppState, TabMode } from './types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
+
+type PageView = 'home' | 'privacy' | 'terms' | 'contact';
 
 // Global Spotlight Component
 const Spotlight = () => {
@@ -40,6 +45,7 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<TabMode>(TabMode.DESIGN);
   const [userEmail, setUserEmail] = useState<string>('');
   const [isToolModalOpen, setIsToolModalOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState<PageView>('home');
 
   const handleStartGeneration = () => {
     setIsToolModalOpen(false);
@@ -63,6 +69,59 @@ export default function App() {
     setIsToolModalOpen(true);
   };
 
+  const handleNavigateToPage = (page: PageView) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleBackToHome = () => {
+    setCurrentPage('home');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Handle smooth scroll navigation
+  useEffect(() => {
+    const handleHashChange = () => {
+      const hash = window.location.hash.slice(1);
+      if (hash && ['suite', 'features', 'gallery'].includes(hash)) {
+        const element = document.getElementById(hash);
+        if (element) {
+          setTimeout(() => {
+            element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          }, 100);
+        }
+      }
+    };
+
+    handleHashChange();
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
+
+  if (currentPage === 'privacy') {
+    return (
+      <div className="min-h-screen bg-black text-white">
+        <PrivacyPolicy onBack={handleBackToHome} />
+      </div>
+    );
+  }
+
+  if (currentPage === 'terms') {
+    return (
+      <div className="min-h-screen bg-black text-white">
+        <TermsOfService onBack={handleBackToHome} />
+      </div>
+    );
+  }
+
+  if (currentPage === 'contact') {
+    return (
+      <div className="min-h-screen bg-black text-white">
+        <ContactSupport onBack={handleBackToHome} />
+      </div>
+    );
+  }
+
   return (
     <div className="h-screen w-screen overflow-y-scroll snap-y snap-mandatory bg-black text-white selection:bg-white selection:text-black scroll-smooth">
       <Navbar />
@@ -71,7 +130,7 @@ export default function App() {
       <main className={`w-full transition-all duration-500 ${isToolModalOpen ? 'blur-sm scale-95 opacity-50' : ''}`}>
         <div className={`transition-opacity duration-700 ease-in-out ${appState === AppState.LOADING ? 'opacity-0' : 'opacity-100'}`}>
           
-          <div id="hero-section" className="snap-start h-screen w-full overflow-hidden relative flex flex-col">
+          <div className="snap-start h-screen w-full overflow-hidden relative flex flex-col">
             <Hero 
               activeTab={activeTab} 
               setActiveTab={setActiveTab} 
@@ -94,7 +153,7 @@ export default function App() {
           <div className="snap-start h-screen w-full flex flex-col relative bg-black border-t border-zinc-900 z-10">
             <CTASection onStartClick={openToolModal} />
             <div className="absolute bottom-0 w-full z-20">
-               <Footer />
+               <Footer onNavigateToPage={handleNavigateToPage} />
             </div>
           </div>
         </div>

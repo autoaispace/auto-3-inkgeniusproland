@@ -38,6 +38,13 @@ export const Navbar: React.FC = () => {
               <a 
                 key={item} 
                 href={`#${item.toLowerCase()}`} 
+                onClick={(e) => {
+                  e.preventDefault();
+                  const element = document.getElementById(item.toLowerCase());
+                  if (element) {
+                    element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                  }
+                }}
                 className="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-500 hover:text-white transition-colors font-mono"
               >
                 {item}
