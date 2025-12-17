@@ -69,6 +69,24 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
     });
   };
 
+  const handleGenerateClick = () => {
+    // Send GTM event for Design generation
+    if (activeTab === TabMode.DESIGN) {
+      if (typeof window !== 'undefined') {
+        (window as any).dataLayer = (window as any).dataLayer || [];
+        (window as any).dataLayer.push({
+          event: 'ai_generate',
+          feature: 'generate',
+          page: isModal ? 'modal' : 'landing',
+          position: 'hero',
+          tab: 'design',
+          action: 'Generate Design'
+        });
+      }
+    }
+    onGenerate();
+  };
+
   return (
     <section 
       id={isModal ? undefined : 'suite'}
@@ -258,7 +276,7 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
                      </div>
                   </div>
                   <button 
-                     onClick={onGenerate}
+                     onClick={handleGenerateClick}
                      className="w-1/2 md:w-2/5 bg-white text-black hover:bg-zinc-200 transition-colors flex items-center justify-center gap-3 group relative overflow-hidden"
                   >
                      <span className="relative z-10 text-xs font-black uppercase tracking-[0.2em]">

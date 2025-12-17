@@ -21,3 +21,10 @@ export interface TabConfig {
   elementId: string;
   placeholder: string;
 }
+
+// Google Tag Manager types
+declare global {
+  interface Window {
+    dataLayer: any[];
+  }
+}
