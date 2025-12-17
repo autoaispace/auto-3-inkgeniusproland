@@ -124,7 +124,7 @@ export default function App() {
 
   return (
     <div className="h-screen w-screen overflow-y-scroll snap-y snap-mandatory bg-black text-white selection:bg-white selection:text-black scroll-smooth">
-      <Navbar />
+      <Navbar onLaunchClick={openToolModal} />
       <Spotlight />
 
       <main className={`w-full transition-all duration-500 ${isToolModalOpen ? 'blur-sm scale-95 opacity-50' : ''}`}>
