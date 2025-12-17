@@ -71,16 +71,16 @@ export const Showcase: React.FC = () => {
              afterImg="/images/t22.png"
            />
            <GridItem 
-             title="Cover-Up Logic"
-             subtitle="Density Calculation"
-             beforeImg="/images/t4.png"
-             afterImg="/images/t44.jpg"
-           />
-           <GridItem 
              title="Anatomy Mapping"
              subtitle="AR Body Fit"
              beforeImg="/images/t3.png"
              afterImg="/images/t33.png"
+           />
+           <GridItem 
+             title="Cover-Up Logic"
+             subtitle="Density Calculation"
+             beforeImg="/images/t4.png"
+             afterImg="/images/t44.jpg"
            />
        </div>
     </section>
