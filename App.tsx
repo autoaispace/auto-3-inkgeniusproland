@@ -12,6 +12,7 @@ import { WaitlistModal } from './components/WaitlistModal';
 import { PrivacyPolicy } from './components/PrivacyPolicy';
 import { TermsOfService } from './components/TermsOfService';
 import { ContactSupport } from './components/ContactSupport';
+import { AuthProvider } from './components/AuthProvider';
 import { AppState, TabMode } from './types';
 import { AnimatePresence, motion } from 'framer-motion';
 import { X } from 'lucide-react';
@@ -123,9 +124,10 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen w-screen overflow-y-scroll snap-none md:snap-y md:snap-mandatory bg-black text-white selection:bg-white selection:text-black scroll-smooth">
-      <Navbar onLaunchClick={openToolModal} />
-      <Spotlight />
+    <AuthProvider>
+      <div className="h-screen w-screen overflow-y-scroll snap-none md:snap-y md:snap-mandatory bg-black text-white selection:bg-white selection:text-black scroll-smooth">
+        <Navbar onLaunchClick={openToolModal} />
+        <Spotlight />
 
       <main className={`w-full transition-all duration-500 ${isToolModalOpen ? 'blur-sm scale-95 opacity-50' : ''}`}>
         <div className={`transition-opacity duration-700 ease-in-out ${appState === AppState.LOADING ? 'opacity-0' : 'opacity-100'}`}>
@@ -220,6 +222,7 @@ export default function App() {
           />
         )}
       </AnimatePresence>
-    </div>
+      </div>
+    </AuthProvider>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { Menu, Zap, Star, X } from 'lucide-react';
+import { Menu, Zap, Star, X, LogIn, LogOut, User } from 'lucide-react';
+import { useAuth } from './AuthProvider';
 
 interface NavbarProps {
   onLaunchClick?: () => void;
@@ -7,6 +8,7 @@ interface NavbarProps {
 
 export const Navbar: React.FC<NavbarProps> = ({ onLaunchClick }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { user, isAuthenticated, login, logout } = useAuth();
 
   const handleNavClick = (item: string) => {
     const element = document.getElementById(item.toLowerCase());
@@ -64,18 +66,71 @@ export const Navbar: React.FC<NavbarProps> = ({ onLaunchClick }) => {
               </a>
             ))}
             
-            <button
-              id="nav-btn-start"
-              onClick={onLaunchClick}
-              className="px-5 py-2 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all flex items-center gap-2 border border-white"
-            >
-              <Zap className="w-3 h-3 fill-black" />
-              Launch
-            </button>
+            <div className="flex items-center gap-3">
+              {isAuthenticated && user ? (
+                <>
+                  <div className="flex items-center gap-2 px-3 py-2 border border-zinc-700 rounded">
+                    {user.avatar ? (
+                      <img 
+                        src={user.avatar} 
+                        alt={user.name || user.email} 
+                        className="w-5 h-5 rounded-full"
+                      />
+                    ) : (
+                      <User className="w-4 h-4 text-zinc-400" />
+                    )}
+                    <span className="text-[10px] font-mono text-zinc-400 hidden lg:inline">
+                      {user.name || user.email.split('@')[0]}
+                    </span>
+                  </div>
+                  <button
+                    onClick={logout}
+                    className="px-4 py-2 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:text-zinc-300 transition-all flex items-center gap-2 border border-zinc-700 hover:border-zinc-500"
+                  >
+                    <LogOut className="w-3 h-3" />
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <button
+                  onClick={login}
+                  className="px-4 py-2 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:text-zinc-300 transition-all flex items-center gap-2 border border-zinc-700 hover:border-zinc-500"
+                >
+                  <LogIn className="w-3 h-3" />
+                  Login
+                </button>
+              )}
+              
+              <button
+                id="nav-btn-start"
+                onClick={onLaunchClick}
+                className="px-5 py-2 bg-white text-black text-[10px] font-black uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all flex items-center gap-2 border border-white"
+              >
+                <Zap className="w-3 h-3 fill-black" />
+                Launch
+              </button>
+            </div>
           </div>
           
           {/* Mobile Menu Button */}
-          <div className="md:hidden flex items-center gap-3">
+          <div className="md:hidden flex items-center gap-2">
+            {isAuthenticated && user ? (
+              <button
+                onClick={logout}
+                className="px-2.5 py-1.5 text-white text-[9px] font-bold uppercase tracking-[0.2em] hover:text-zinc-300 transition-all flex items-center gap-1 border border-zinc-700"
+              >
+                <LogOut className="w-3 h-3" />
+                <span className="hidden sm:inline">Logout</span>
+              </button>
+            ) : (
+              <button
+                onClick={login}
+                className="px-2.5 py-1.5 text-white text-[9px] font-bold uppercase tracking-[0.2em] hover:text-zinc-300 transition-all flex items-center gap-1 border border-zinc-700"
+              >
+                <LogIn className="w-3 h-3" />
+                <span className="hidden sm:inline">Login</span>
+              </button>
+            )}
             {onLaunchClick && (
               <button
                 onClick={onLaunchClick}
