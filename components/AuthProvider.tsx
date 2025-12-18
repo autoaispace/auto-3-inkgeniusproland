@@ -29,24 +29,26 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // 检查 URL 中是否有登录回调参数
     const checkAuthCallback = () => {
       const urlParams = new URLSearchParams(window.location.search);
+      const authSuccess = urlParams.get('auth_success');
       const email = urlParams.get('email');
       const id = urlParams.get('id');
       
       console.log('🔍 AuthProvider - Checking URL params:', { 
+        authSuccess,
         email: !!email, 
         id: !!id, 
         fullSearch: window.location.search,
         pathname: window.location.pathname
       });
       
-      if (email && id) {
+      // 检查是否有认证成功标志
+      if (authSuccess === 'true' && email && id) {
         const callbackUser = handleAuthCallback();
         if (callbackUser) {
           console.log('✅ AuthProvider - User logged in:', callbackUser);
           setUserState(callbackUser);
           // 清除 URL 中的参数
-          const cleanPath = window.location.pathname.replace('/auth/success', '') || '/';
-          const cleanUrl = window.location.origin + cleanPath;
+          const cleanUrl = window.location.origin + window.location.pathname;
           console.log('🧹 Cleaning URL from', window.location.href, 'to', cleanUrl);
           window.history.replaceState({}, document.title, cleanUrl);
           return true;
@@ -74,13 +76,14 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const handleLocationChange = () => {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('email') && urlParams.has('id')) {
+      const authSuccess = urlParams.get('auth_success');
+      
+      if (authSuccess === 'true' && urlParams.has('email') && urlParams.has('id')) {
         const callbackUser = handleAuthCallback();
         if (callbackUser) {
           console.log('✅ AuthProvider - User logged in (location change):', callbackUser);
           setUserState(callbackUser);
-          const cleanPath = window.location.pathname.replace('/auth/success', '') || '/';
-          const cleanUrl = window.location.origin + cleanPath;
+          const cleanUrl = window.location.origin + window.location.pathname;
           window.history.replaceState({}, document.title, cleanUrl);
         }
       }
@@ -92,13 +95,16 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     // 定期检查 URL 变化（处理重定向后的情况）
     const checkInterval = setInterval(() => {
       const urlParams = new URLSearchParams(window.location.search);
-      if (urlParams.has('email') && urlParams.has('id') && !user) {
+      const authSuccess = urlParams.get('auth_success');
+      
+      if (authSuccess === 'true' && urlParams.has('email') && urlParams.has('id') && !user) {
+        console.log('🔄 Periodic check triggered auth callback');
         handleLocationChange();
       }
-    }, 500);
+    }, 1000);
 
-    // 5秒后清除定时器（避免无限检查）
-    setTimeout(() => clearInterval(checkInterval), 5000);
+    // 10秒后清除定时器（避免无限检查）
+    setTimeout(() => clearInterval(checkInterval), 10000);
     
     return () => {
       window.removeEventListener('popstate', handleLocationChange);

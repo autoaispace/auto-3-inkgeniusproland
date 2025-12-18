@@ -62,10 +62,18 @@ export const handleAuthCallback = (): User | null => {
   const name = urlParams.get('name');
   const id = urlParams.get('id');
   const avatar = urlParams.get('avatar');
+  const authSuccess = urlParams.get('auth_success');
 
-  console.log('🔍 Checking auth callback params:', { email, name, id, avatar: !!avatar });
+  console.log('🔍 Checking auth callback params:', { 
+    email, 
+    name, 
+    id, 
+    avatar: !!avatar, 
+    authSuccess,
+    fullUrl: window.location.href 
+  });
 
-  if (email && id) {
+  if (email && id && authSuccess === 'true') {
     const user: User = {
       id,
       email: decodeURIComponent(email),
@@ -79,6 +87,10 @@ export const handleAuthCallback = (): User | null => {
     return user;
   }
   
-  console.log('⚠️ Auth callback - Missing required params (email or id)');
+  console.log('⚠️ Auth callback - Missing required params or auth_success flag:', { 
+    hasEmail: !!email, 
+    hasId: !!id, 
+    authSuccess 
+  });
   return null;
 };

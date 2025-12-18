@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>认证测试页面</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 0;
+        }
+        button:hover {
+            background: #3367d6;
+        }
+        .info {
+            background: #e8f4fd;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .error {
+            background: #ffeaea;
+            color: #d32f2f;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .success {
+            background: #e8f5e8;
+            color: #2e7d32;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Google 认证测试页面</h1>
+        
+        <div class="info">
+            <h3>测试步骤：</h3>
+            <ol>
+                <li>点击"测试后端连接"确认后端服务正常</li>
+                <li>点击"Google 登录"进行认证</li>
+                <li>登录成功后会重定向回来并显示用户信息</li>
+                <li>检查数据库中是否保存了用户信息</li>
+            </ol>
+        </div>
+
+        <div id="status"></div>
+        
+        <button onclick="testBackend()">测试后端连接</button>
+        <button onclick="testDatabase()">检查数据库</button>
+        <button onclick="loginWithGoogle()">Google 登录</button>
+        <button onclick="checkAuthStatus()">检查认证状态</button>
+        <button onclick="clearAuth()">清除认证信息</button>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'http://localhost:8080';
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        async function testBackend() {
+            try {
+                log('正在测试后端连接...', 'info');
+                const response = await fetch(`${BACKEND_URL}/health`);
+                const data = await response.json();
+                log(`后端连接成功: ${JSON.stringify(data)}`, 'success');
+            } catch (error) {
+                log(`后端连接失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testDatabase() {
+            try {
+                log('正在检查数据库...', 'info');
+                const response = await fetch(`${BACKEND_URL}/api/auth/test/db`);
+                const data = await response.json();
+                log(`数据库状态: 用户数量 ${data.userCount}`, 'success');
+                if (data.users && data.users.length > 0) {
+                    log(`用户列表: <pre>${JSON.stringify(data.users, null, 2)}</pre>`, 'info');
+                }
+            } catch (error) {
+                log(`数据库检查失败: ${error.message}`, 'error');
+            }
+        }
+
+        function loginWithGoogle() {
+            log('正在跳转到 Google 登录...', 'info');
+            window.location.href = `${BACKEND_URL}/api/auth/google`;
+        }
+
+        function checkAuthStatus() {
+            // 检查 URL 参数
+            const urlParams = new URLSearchParams(window.location.search);
+            const authSuccess = urlParams.get('auth_success');
+            const email = urlParams.get('email');
+            const name = urlParams.get('name');
+            const id = urlParams.get('id');
+            const avatar = urlParams.get('avatar');
+
+            if (authSuccess === 'true' && email && id) {
+                const user = {
+                    id,
+                    email: decodeURIComponent(email),
+                    name: name ? decodeURIComponent(name) : undefined,
+                    avatar: avatar ? decodeURIComponent(avatar) : undefined,
+                };
+                
+                // 保存到 localStorage
+                localStorage.setItem('user', JSON.stringify(user));
+                
+                log(`认证成功！用户信息: <pre>${JSON.stringify(user, null, 2)}</pre>`, 'success');
+                
+                // 清除 URL 参数
+                const cleanUrl = window.location.origin + window.location.pathname;
+                window.history.replaceState({}, document.title, cleanUrl);
+                
+                return user;
+            }
+
+            // 检查 localStorage
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                try {
+                    const user = JSON.parse(savedUser);
+                    log(`从本地存储加载用户: <pre>${JSON.stringify(user, null, 2)}</pre>`, 'success');
+                    return user;
+                } catch (error) {
+                    log('本地存储的用户数据格式错误', 'error');
+                }
+            }
+
+            log('未找到认证信息', 'info');
+            return null;
+        }
+
+        function clearAuth() {
+            localStorage.removeItem('user');
+            log('已清除认证信息', 'info');
+        }
+
+        // 页面加载时自动检查认证状态
+        window.addEventListener('load', () => {
+            log('页面加载完成，检查认证状态...', 'info');
+            checkAuthStatus();
+        });
+    </script>
+</body>
+</html>
