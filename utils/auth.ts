@@ -71,10 +71,8 @@ export const handleAuthCallback = (): User | null => {
       avatar: avatar ? decodeURIComponent(avatar) : undefined,
     };
     
+    console.log('🔐 Auth callback - User info received:', user);
     setUser(user);
-    
-    // 清除 URL 参数
-    window.history.replaceState({}, document.title, window.location.pathname);
     
     return user;
   }
