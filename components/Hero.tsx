@@ -109,15 +109,15 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
       <InkBackground />
 
       {/* Main Content Container: If modal, take full width/height without padding constraints */}
-      <div className={`relative z-10 w-full h-full flex flex-col justify-center ${isModal ? '' : 'max-w-6xl mx-auto px-6'}`}>
+      <div className={`relative z-10 w-full h-full flex flex-col justify-center ${isModal ? '' : 'max-w-6xl mx-auto px-4 sm:px-6'}`}>
         
         {/* 1. HEADLINES (Simplified) */}
         {!isModal && (
-          <div className="text-center mb-10 md:mb-16 relative">
-             <h1 className="text-5xl md:text-6xl lg:text-6xl font-black  tracking-tighter leading-[0.9] mb-4 drop-shadow-2xl text-premium">
+          <div className="text-center mb-6 sm:mb-10 md:mb-16 relative">
+             <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-black tracking-tighter leading-[0.9] mb-3 sm:mb-4 drop-shadow-2xl text-premium px-2">
              Pro AI Tattoo Generator
              </h1>
-             <p className="text-zinc-400 font-serif italic text-lg md:text-2xl max-w-3xl mx-auto leading-relaxed">
+             <p className="text-zinc-400 font-serif italic text-sm sm:text-base md:text-lg lg:text-2xl max-w-3xl mx-auto leading-relaxed px-4">
              Design. Visualize. Stencil. Built exclusively for the tattoo community.
              </p>
           </div>
@@ -128,7 +128,7 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
            flex flex-col lg:flex-row gap-0 items-stretch bg-[#0a0a0a] relative overflow-hidden 
            ${isModal 
              ? 'w-full h-full border-0 rounded-none shadow-none' 
-             : 'h-[55vh] min-h-[500px] border border-zinc-800 shadow-[0_50px_100px_rgba(0,0,0,0.8)] rounded-sm ring-1 ring-white/5'
+             : 'h-auto min-h-[600px] sm:min-h-[500px] md:h-[55vh] border border-zinc-800 shadow-[0_50px_100px_rgba(0,0,0,0.8)] rounded-sm ring-1 ring-white/5'
            }
         `}>
            
@@ -143,16 +143,16 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
            )}
 
            {/* LEFT: CONTROLS */}
-           <div className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-zinc-800 flex flex-col z-20 bg-zinc-950">
-              <div className="h-16 border-b border-zinc-800 flex items-center px-6 bg-black/20 justify-between">
-                 <span className="text-[10px] font-mono text-zinc-500 uppercase tracking-widest flex items-center gap-2">
+           <div className="w-full lg:w-1/3 border-b lg:border-b-0 lg:border-r border-zinc-800 flex flex-col z-20 bg-zinc-950 min-h-[200px] sm:min-h-0">
+              <div className="h-12 sm:h-16 border-b border-zinc-800 flex items-center px-4 sm:px-6 bg-black/20 justify-between shrink-0">
+                 <span className="text-[9px] sm:text-[10px] font-mono text-zinc-500 uppercase tracking-widest flex items-center gap-2">
                     <span className="w-1.5 h-1.5 bg-zinc-600 rounded-full"></span>
                     Tool Selector
                  </span>
-                 <Settings className="w-3.5 h-3.5 text-zinc-600" />
+                 <Settings className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-zinc-600" />
               </div>
               
-              <div className="flex-grow flex flex-col relative py-2 overflow-y-auto">
+              <div className="flex-grow flex flex-row lg:flex-col relative py-2 overflow-x-auto lg:overflow-y-auto overflow-y-hidden">
                  {/* Texture */}
                  <div className="absolute inset-0 opacity-[0.02] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] pointer-events-none"></div>
 
@@ -162,22 +162,22 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
                     <button
                       key={tab.id}
                       onClick={() => setActiveTab(tab.id)}
-                      className={`relative group flex-grow flex items-center px-8 py-4 lg:py-0 transition-all duration-300 border-l-2 ${
+                      className={`relative group flex-shrink-0 lg:flex-grow flex items-center px-4 sm:px-6 lg:px-8 py-3 sm:py-4 lg:py-0 transition-all duration-300 border-l-2 lg:border-l-2 border-b-2 lg:border-b-0 ${
                         isActive 
                         ? 'bg-zinc-900 border-white text-white' 
                         : 'bg-transparent border-transparent text-zinc-500 hover:text-zinc-300 hover:bg-zinc-900/50'
                       }`}
                     >
-                       <div className="flex items-center gap-5 w-full relative z-10">
-                          <tab.icon className={`w-5 h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'scale-100'}`} />
+                       <div className="flex items-center gap-3 sm:gap-5 w-full relative z-10">
+                          <tab.icon className={`w-4 h-4 sm:w-5 sm:h-5 transition-transform duration-300 ${isActive ? 'scale-110' : 'scale-100'}`} />
                           <div className="text-left">
-                            <span className={`block text-sm font-bold uppercase tracking-wider leading-none mb-1 font-sans`}>
+                            <span className={`block text-xs sm:text-sm font-bold uppercase tracking-wider leading-none mb-0.5 sm:mb-1 font-sans`}>
                               {tab.label}
                             </span>
-                            <span className="text-[9px] font-mono opacity-50 block">{isActive ? 'ACTIVE' : 'STANDBY'}</span>
+                            <span className="text-[8px] sm:text-[9px] font-mono opacity-50 block">{isActive ? 'ACTIVE' : 'STANDBY'}</span>
                           </div>
                        </div>
-                       {isActive && <MoveRight className="absolute right-6 w-4 h-4 text-white animate-pulse" />}
+                       {isActive && <MoveRight className="absolute right-3 sm:right-6 w-3 h-3 sm:w-4 sm:h-4 text-white animate-pulse" />}
                     </button>
                   );
                 })}
@@ -190,21 +190,21 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
                <div className="absolute inset-0 opacity-10 bg-[linear-gradient(rgba(255,255,255,0.05)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.05)_1px,transparent_1px)] bg-[size:40px_40px]"></div>
 
                {/* Header */}
-               <div className="h-16 border-b border-zinc-800 flex items-center justify-between px-8 bg-black/40 backdrop-blur">
-                  <div className="flex items-center gap-3">
+               <div className="h-12 sm:h-16 border-b border-zinc-800 flex items-center justify-between px-4 sm:px-6 md:px-8 bg-black/40 backdrop-blur shrink-0">
+                  <div className="flex items-center gap-2 sm:gap-3">
                      <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse shadow-[0_0_10px_rgba(16,185,129,0.5)]" />
-                     <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
+                     <span className="text-[9px] sm:text-[10px] font-mono text-zinc-400 uppercase tracking-widest">
                        System Ready
                      </span>
                   </div>
                   <div className="flex gap-1.5">
-                     <div className="w-8 h-0.5 bg-zinc-800"></div>
+                     <div className="w-6 sm:w-8 h-0.5 bg-zinc-800"></div>
                      <div className="w-2 h-0.5 bg-zinc-800"></div>
                   </div>
                </div>
 
                {/* Input Area */}
-               <div className="flex-grow relative overflow-hidden p-10 flex flex-col justify-center">
+               <div className="flex-grow relative overflow-hidden p-4 sm:p-6 md:p-10 flex flex-col justify-center min-h-[300px] sm:min-h-[350px]">
                   <AnimatePresence mode="wait">
                     <motion.div 
                       key={activeTab}
@@ -214,40 +214,40 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
                       transition={{ duration: 0.3 }}
                       className="h-full flex flex-col relative z-10"
                     >
-                        <h3 className="text-xl text-white font-serif italic mb-6 opacity-80">{activeConfig.displayTitle}</h3>
+                        <h3 className="text-base sm:text-lg md:text-xl text-white font-serif italic mb-4 sm:mb-6 opacity-80">{activeConfig.displayTitle}</h3>
 
                         {/* Prompt Input / File Upload */}
                         {activeTab === TabMode.TRY_ON ? (
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 h-full max-h-[400px]">
-                             <div className="border border-dashed border-zinc-800 hover:border-zinc-600 bg-zinc-900/10 hover:bg-zinc-900/30 transition-all cursor-pointer flex flex-col items-center justify-center p-6 group rounded-sm">
-                                <Upload className="w-8 h-8 text-zinc-600 group-hover:text-white mb-4 transition-colors" />
-                                <span className="text-[10px] font-bold text-zinc-500 group-hover:text-white uppercase tracking-widest transition-colors">Load Tattoo</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 h-full max-h-[400px]">
+                             <div className="border border-dashed border-zinc-800 hover:border-zinc-600 bg-zinc-900/10 hover:bg-zinc-900/30 transition-all cursor-pointer flex flex-col items-center justify-center p-4 sm:p-6 group rounded-sm min-h-[150px]">
+                                <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-zinc-600 group-hover:text-white mb-3 sm:mb-4 transition-colors" />
+                                <span className="text-[9px] sm:text-[10px] font-bold text-zinc-500 group-hover:text-white uppercase tracking-widest transition-colors text-center">Load Tattoo</span>
                              </div>
-                             <div className="border border-dashed border-zinc-800 hover:border-zinc-600 bg-zinc-900/10 hover:bg-zinc-900/30 transition-all cursor-pointer flex flex-col items-center justify-center p-6 group rounded-sm">
-                                <Camera className="w-8 h-8 text-zinc-600 group-hover:text-white mb-4 transition-colors" />
-                                <span className="text-[10px] font-bold text-zinc-500 group-hover:text-white uppercase tracking-widest transition-colors">Capture Body</span>
+                             <div className="border border-dashed border-zinc-800 hover:border-zinc-600 bg-zinc-900/10 hover:bg-zinc-900/30 transition-all cursor-pointer flex flex-col items-center justify-center p-4 sm:p-6 group rounded-sm min-h-[150px]">
+                                <Camera className="w-6 h-6 sm:w-8 sm:h-8 text-zinc-600 group-hover:text-white mb-3 sm:mb-4 transition-colors" />
+                                <span className="text-[9px] sm:text-[10px] font-bold text-zinc-500 group-hover:text-white uppercase tracking-widest transition-colors text-center">Capture Body</span>
                              </div>
                           </div>
                         ) : activeTab === TabMode.DESIGN ? (
                            <div className="flex-grow relative group">
                               <textarea 
-                                className="w-full h-full bg-transparent text-3xl md:text-5xl font-black text-white/90 placeholder-zinc-800 focus:outline-none resize-none leading-[1.1] tracking-tighter font-sans"
+                                className="w-full h-full bg-transparent text-xl sm:text-2xl md:text-3xl lg:text-5xl font-black text-white/90 placeholder-zinc-800 focus:outline-none resize-none leading-[1.1] tracking-tighter font-sans"
                                 placeholder={activeConfig.placeholder}
                                 autoFocus
                               />
                               <div className="absolute bottom-0 right-0 p-2">
-                                <Sparkles className="w-6 h-6 text-zinc-700 group-hover:text-white transition-colors" />
+                                <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-zinc-700 group-hover:text-white transition-colors" />
                               </div>
                            </div>
                         ) : (
                            <div 
                              onClick={() => document.getElementById('file-upload')?.click()}
-                             className="flex-grow border border-dashed border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/20 transition-all cursor-pointer flex flex-col items-center justify-center gap-6 group rounded-sm"
+                             className="flex-grow border border-dashed border-zinc-800 hover:border-zinc-600 hover:bg-zinc-900/20 transition-all cursor-pointer flex flex-col items-center justify-center gap-4 sm:gap-6 group rounded-sm min-h-[200px]"
                            >
-                              <div className="w-20 h-20 bg-[#0a0a0a] rounded-full flex items-center justify-center border border-zinc-800 group-hover:border-white transition-colors shadow-2xl">
-                                 <Upload className="w-8 h-8 text-zinc-600 group-hover:text-white transition-colors" />
+                              <div className="w-16 h-16 sm:w-20 sm:h-20 bg-[#0a0a0a] rounded-full flex items-center justify-center border border-zinc-800 group-hover:border-white transition-colors shadow-2xl">
+                                 <Upload className="w-6 h-6 sm:w-8 sm:h-8 text-zinc-600 group-hover:text-white transition-colors" />
                               </div>
-                              <span className="text-xs font-bold text-zinc-500 group-hover:text-white uppercase tracking-widest transition-colors">
+                              <span className="text-[10px] sm:text-xs font-bold text-zinc-500 group-hover:text-white uppercase tracking-widest transition-colors text-center px-4">
                                  Upload Reference Image
                               </span>
                               <input type="file" id="file-upload" className="hidden" />
@@ -258,21 +258,21 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
                </div>
 
                {/* Footer Action Bar */}
-               <div className="h-20 border-t border-zinc-800 flex bg-zinc-950 relative z-20 shrink-0">
-                  <div className="flex-grow border-r border-zinc-800 flex items-center px-8 justify-between">
+               <div className="h-16 sm:h-20 border-t border-zinc-800 flex flex-col sm:flex-row bg-zinc-950 relative z-20 shrink-0">
+                  <div className="flex-grow border-b sm:border-b-0 sm:border-r border-zinc-800 flex items-center px-4 sm:px-6 md:px-8 justify-between sm:justify-between shrink-0">
                      <div className="flex flex-col">
-                        <span className="text-[10px] font-mono text-zinc-500 uppercase">Est. Render Time</span>
-                        <span className="text-xs text-white font-mono">1.2s</span>
+                        <span className="text-[9px] sm:text-[10px] font-mono text-zinc-500 uppercase">Est. Render Time</span>
+                        <span className="text-[10px] sm:text-xs text-white font-mono">1.2s</span>
                      </div>
                   </div>
                   <button 
                      onClick={handleGenerateClick}
-                     className="w-1/2 md:w-2/5 bg-white text-black hover:bg-zinc-200 transition-colors flex items-center justify-center gap-3 group relative overflow-hidden"
+                     className="w-full sm:w-1/2 md:w-2/5 bg-white text-black hover:bg-zinc-200 transition-colors flex items-center justify-center gap-2 sm:gap-3 group relative overflow-hidden py-3 sm:py-0"
                   >
-                     <span className="relative z-10 text-xs font-black uppercase tracking-[0.2em]">
+                     <span className="relative z-10 text-[10px] sm:text-xs font-black uppercase tracking-[0.2em]">
                         {activeConfig.action}
                      </span>
-                     <Sparkles className="w-4 h-4 relative z-10" />
+                     <Sparkles className="w-3 h-3 sm:w-4 sm:h-4 relative z-10" />
                      {/* Ink transition */}
                      <div className="absolute inset-0 bg-black scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300 mix-blend-exclusion" />
                   </button>

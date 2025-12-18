@@ -13,12 +13,12 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateToPage }) => {
   };
 
   return (
-    <footer className="bg-black/50 border-t border-white/5 py-12">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-6">
-        <div className="text-zinc-500 text-sm">
+    <footer className="bg-black/50 border-t border-white/5 py-8 sm:py-12">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex flex-col md:flex-row justify-between items-center gap-4 sm:gap-6">
+        <div className="text-zinc-500 text-xs sm:text-sm text-center md:text-left">
           © 2025 InkGenius Pro. All rights reserved.
         </div>
-        <div className="flex flex-wrap justify-center gap-8">
+        <div className="flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8">
           <a 
             href="#" 
             onClick={(e) => handleClick(e, 'privacy')}

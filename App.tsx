@@ -123,14 +123,14 @@ export default function App() {
   }
 
   return (
-    <div className="h-screen w-screen overflow-y-scroll snap-y snap-mandatory bg-black text-white selection:bg-white selection:text-black scroll-smooth">
+    <div className="h-screen w-screen overflow-y-scroll snap-none md:snap-y md:snap-mandatory bg-black text-white selection:bg-white selection:text-black scroll-smooth">
       <Navbar onLaunchClick={openToolModal} />
       <Spotlight />
 
       <main className={`w-full transition-all duration-500 ${isToolModalOpen ? 'blur-sm scale-95 opacity-50' : ''}`}>
         <div className={`transition-opacity duration-700 ease-in-out ${appState === AppState.LOADING ? 'opacity-0' : 'opacity-100'}`}>
           
-          <div className="snap-start h-screen w-full overflow-hidden relative flex flex-col">
+          <div className="md:snap-start min-h-screen md:h-screen w-full overflow-hidden relative flex flex-col">
             <Hero 
               activeTab={activeTab} 
               setActiveTab={setActiveTab} 
@@ -138,19 +138,19 @@ export default function App() {
             />
           </div>
           
-          <div className="snap-start min-h-screen w-full flex items-center bg-black relative border-t border-zinc-900 z-10">
+          <div className="md:snap-start min-h-screen w-full flex items-center bg-black relative border-t border-zinc-900 z-10">
             <Features />
           </div>
 
-          <div className="snap-start min-h-screen w-full flex items-center bg-black relative border-t border-zinc-900 z-10">
+          <div className="md:snap-start min-h-screen w-full flex items-center bg-black relative border-t border-zinc-900 z-10">
             <Showcase />
           </div>
           
-          <div className="snap-start min-h-screen w-full flex items-center bg-[#0a0a0a] relative border-t border-zinc-900 z-10">
+          <div className="md:snap-start min-h-screen w-full flex items-center bg-[#0a0a0a] relative border-t border-zinc-900 z-10">
             <Gallery />
           </div>
           
-          <div className="snap-start h-screen w-full flex flex-col relative bg-black border-t border-zinc-900 z-10">
+          <div className="md:snap-start min-h-screen md:h-screen w-full flex flex-col relative bg-black border-t border-zinc-900 z-10">
             <CTASection onStartClick={openToolModal} />
             <div className="absolute bottom-0 w-full z-20">
                <Footer onNavigateToPage={handleNavigateToPage} />

@@ -18,22 +18,22 @@ export const CTASection: React.FC<CTAProps> = ({ onStartClick }) => {
           </svg>
        </div>
 
-       <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
-          <h2 className="text-5xl md:text-8xl font-black tracking-tighter mb-8 uppercase leading-[0.9] text-premium">
-             Your Dream Tattoo is <br/>
+       <div className="max-w-4xl mx-auto px-4 sm:px-6 text-center relative z-10">
+          <h2 className="text-3xl sm:text-4xl md:text-5xl lg:text-8xl font-black tracking-tighter mb-6 sm:mb-8 uppercase leading-[0.9] text-premium">
+             Your Dream Tattoo is <br className="hidden sm:block"/>
              One Click Away.
           </h2>
           
-          <p className="text-zinc-500 max-w-2xl mx-auto mb-12 font-mono text-xs md:text-sm leading-relaxed uppercase tracking-widest">
-             Don't settle for generic Google images. <br/> Create a unique design that tells your story in seconds.
+          <p className="text-zinc-500 max-w-2xl mx-auto mb-8 sm:mb-12 font-mono text-[10px] sm:text-xs md:text-sm leading-relaxed uppercase tracking-widest px-2">
+             Don't settle for generic Google images. <br className="hidden sm:block"/> Create a unique design that tells your story in seconds.
           </p>
           
           <button 
              onClick={onStartClick}
-             className="group relative inline-flex items-center gap-6 px-12 py-6 bg-white text-black font-black text-sm uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all overflow-hidden border-2 border-white rounded-sm"
+             className="group relative inline-flex items-center gap-3 sm:gap-6 px-6 sm:px-12 py-4 sm:py-6 bg-white text-black font-black text-xs sm:text-sm uppercase tracking-[0.2em] hover:bg-zinc-200 transition-all overflow-hidden border-2 border-white rounded-sm"
           >
              <span className="relative z-10">Create My Tattoo For Free</span>
-             <ChevronRight className="w-4 h-4 relative z-10 group-hover:translate-x-2 transition-transform" />
+             <ChevronRight className="w-3 h-3 sm:w-4 sm:h-4 relative z-10 group-hover:translate-x-2 transition-transform" />
              
              {/* Ink Splash Effect on Hover */}
              <div className="absolute inset-0 bg-black scale-x-0 group-hover:scale-x-100 origin-left transition-transform duration-300 mix-blend-exclusion" />
