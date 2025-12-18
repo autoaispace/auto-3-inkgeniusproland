@@ -63,6 +63,8 @@ export const handleAuthCallback = (): User | null => {
   const id = urlParams.get('id');
   const avatar = urlParams.get('avatar');
 
+  console.log('🔍 Checking auth callback params:', { email, name, id, avatar: !!avatar });
+
   if (email && id) {
     const user: User = {
       id,
@@ -77,5 +79,6 @@ export const handleAuthCallback = (): User | null => {
     return user;
   }
   
+  console.log('⚠️ Auth callback - Missing required params (email or id)');
   return null;
 };
