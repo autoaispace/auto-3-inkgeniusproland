@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Coins, TrendingUp, Clock, Plus } from 'lucide-react';
 import { useAuth } from './AuthProvider';
-import PaymentModalOptimized from './PaymentModalOptimized';
+import PaymentModalFixed from './PaymentModalFixed';
 
 interface UserCredits {
   _id: string;
@@ -167,7 +167,7 @@ export const CreditsDisplay: React.FC<CreditsDisplayProps> = ({ className = '' }
       </div>
 
       {/* 支付弹框 */}
-      <PaymentModalOptimized
+      <PaymentModalFixed
         isOpen={showPaymentModal}
         onClose={() => setShowPaymentModal(false)}
         userEmail={user?.email}
