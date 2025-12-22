@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Coins, TrendingUp, Clock } from 'lucide-react';
+import { Coins, TrendingUp, Clock, Plus } from 'lucide-react';
 import { useAuth } from './AuthProvider';
+import PaymentModal from './PaymentModal';
 
 interface UserCredits {
   _id: string;
@@ -23,6 +24,7 @@ export const CreditsDisplay: React.FC<CreditsDisplayProps> = ({ className = '' }
   const [credits, setCredits] = useState<UserCredits | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
 
   const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8080';
 
@@ -63,6 +65,13 @@ export const CreditsDisplay: React.FC<CreditsDisplayProps> = ({ className = '' }
     }
   }, [isAuthenticated, user?.email]);
 
+  // 处理支付成功
+  const handlePaymentSuccess = (newCredits: number) => {
+    // 刷新积分信息
+    fetchUserCredits();
+    setShowPaymentModal(false);
+  };
+
   // 如果用户未登录，不显示积分
   if (!isAuthenticated || !user) {
     return null;
@@ -94,56 +103,76 @@ export const CreditsDisplay: React.FC<CreditsDisplayProps> = ({ className = '' }
 
   // 显示积分
   return (
-    <div className={`flex items-center gap-2 px-3 py-2 border border-zinc-700 rounded hover:border-zinc-600 transition-colors cursor-pointer group ${className}`}>
-      <Coins className="w-4 h-4 text-yellow-400 group-hover:text-yellow-300 transition-colors" />
-      <div className="flex flex-col">
-        <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wide leading-none">
-          Credits
-        </span>
-        <span className="text-sm font-bold text-white leading-none">
-          {credits?.credits?.toLocaleString() || '0'}
-        </span>
-      </div>
-      
-      {/* 悬停时显示更多信息 */}
-      <div className="hidden group-hover:block absolute top-full right-0 mt-2 p-3 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl z-50 min-w-[200px]">
-        <div className="text-xs text-zinc-300 space-y-2">
-          <div className="flex justify-between">
-            <span>当前积分:</span>
-            <span className="text-yellow-400 font-bold">{credits?.credits?.toLocaleString()}</span>
-          </div>
-          {credits?.lastEarnedAt && (
-            <div className="flex justify-between items-center">
-              <span>最后获得:</span>
-              <div className="flex items-center gap-1">
-                <TrendingUp className="w-3 h-3 text-green-400" />
-                <span className="text-green-400">
-                  {new Date(credits.lastEarnedAt).toLocaleDateString()}
-                </span>
-              </div>
+    <>
+      <div className={`relative flex items-center gap-2 px-3 py-2 border border-zinc-700 rounded hover:border-zinc-600 transition-colors cursor-pointer group ${className}`}>
+        <Coins className="w-4 h-4 text-yellow-400 group-hover:text-yellow-300 transition-colors" />
+        <div className="flex flex-col">
+          <span className="text-[10px] font-mono text-zinc-400 uppercase tracking-wide leading-none">
+            Credits
+          </span>
+          <span className="text-sm font-bold text-white leading-none">
+            {credits?.credits?.toLocaleString() || '0'}
+          </span>
+        </div>
+        
+        {/* 悬停时显示更多信息 */}
+        <div className="hidden group-hover:block absolute top-full right-0 mt-2 p-3 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl z-50 min-w-[200px]">
+          <div className="text-xs text-zinc-300 space-y-2">
+            <div className="flex justify-between">
+              <span>当前积分:</span>
+              <span className="text-yellow-400 font-bold">{credits?.credits?.toLocaleString()}</span>
             </div>
-          )}
-          {credits?.lastSpentAt && (
-            <div className="flex justify-between items-center">
-              <span>最后消费:</span>
-              <div className="flex items-center gap-1">
-                <Clock className="w-3 h-3 text-red-400" />
-                <span className="text-red-400">
-                  {new Date(credits.lastSpentAt).toLocaleDateString()}
-                </span>
+            {credits?.lastEarnedAt && (
+              <div className="flex justify-between items-center">
+                <span>最后获得:</span>
+                <div className="flex items-center gap-1">
+                  <TrendingUp className="w-3 h-3 text-green-400" />
+                  <span className="text-green-400">
+                    {new Date(credits.lastEarnedAt).toLocaleDateString()}
+                  </span>
+                </div>
               </div>
+            )}
+            {credits?.lastSpentAt && (
+              <div className="flex justify-between items-center">
+                <span>最后消费:</span>
+                <div className="flex items-center gap-1">
+                  <Clock className="w-3 h-3 text-red-400" />
+                  <span className="text-red-400">
+                    {new Date(credits.lastSpentAt).toLocaleDateString()}
+                  </span>
+                </div>
+              </div>
+            )}
+            <div className="pt-2 border-t border-zinc-700 space-y-2">
+              <button 
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowPaymentModal(true);
+                }}
+                className="w-full flex items-center justify-center gap-1 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs rounded transition-colors"
+              >
+                <Plus className="w-3 h-3" />
+                购买积分
+              </button>
+              <button 
+                onClick={() => {/* TODO: 打开积分详情页面 */}}
+                className="text-blue-400 hover:text-blue-300 text-xs"
+              >
+                查看详情 →
+              </button>
             </div>
-          )}
-          <div className="pt-2 border-t border-zinc-700">
-            <button 
-              onClick={() => {/* TODO: 打开积分详情页面 */}}
-              className="text-blue-400 hover:text-blue-300 text-xs"
-            >
-              查看详情 →
-            </button>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* 支付弹框 */}
+      <PaymentModal
+        isOpen={showPaymentModal}
+        onClose={() => setShowPaymentModal(false)}
+        userEmail={user?.email}
+        onPaymentSuccess={handlePaymentSuccess}
+      />
+    </>
   );
 };
