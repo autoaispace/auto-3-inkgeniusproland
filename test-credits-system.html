@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>积分系统测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .success { background: #e8f5e8; color: #2e7d32; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .error { background: #ffeaea; color: #d32f2f; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        .info { background: #e3f2fd; color: #1976d2; padding: 15px; border-radius: 4px; margin: 10px 0; }
+        button {
+            background: #4285f4;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            margin: 10px 5px 10px 0;
+        }
+        button:hover { background: #3367d6; }
+        pre {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+        input {
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            margin: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🏆 积分系统测试</h1>
+        
+        <div class="info">
+            <h3>测试说明：</h3>
+            <p>这个页面用于测试新创建的用户积分系统。确保后端已部署并且用户已通过Google登录。</p>
+        </div>
+
+        <div>
+            <h3>📧 用户邮箱：</h3>
+            <input type="email" id="userEmail" placeholder="输入用户邮箱" value="nfkmr920@gmail.com">
+            <button onclick="getUserCredits()">获取用户积分</button>
+        </div>
+        
+        <div>
+            <h3>🔧 管理操作：</h3>
+            <input type="number" id="creditAmount" placeholder="积分数量" value="50">
+            <input type="text" id="description" placeholder="操作描述" value="测试奖励">
+            <button onclick="addCredits()">添加积分</button>
+            <button onclick="spendCredits()">消费积分</button>
+        </div>
+
+        <div>
+            <h3>📊 系统测试：</h3>
+            <button onclick="testAllCredits()">查看所有用户积分</button>
+            <button onclick="getUserTransactions()">获取交易记录</button>
+            <button onclick="testBackendHealth()">测试后端健康</button>
+        </div>
+        
+        <div id="results"></div>
+    </div>
+
+    <script>
+        const BACKEND_URL = 'https://inkgeniusapi.digworldai.com';
+        
+        function log(message, type = 'info') {
+            const results = document.getElementById('results');
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = `<strong>${new Date().toLocaleTimeString()}</strong>: ${message}`;
+            results.appendChild(div);
+            console.log(message);
+        }
+
+        async function testBackendHealth() {
+            try {
+                log('🔄 测试后端健康状态...', 'info');
+                const response = await fetch(`${BACKEND_URL}/health`);
+                const data = await response.json();
+                log(`✅ 后端健康: <pre>${JSON.stringify(data, null, 2)}</pre>`, 'success');
+            } catch (error) {
+                log(`❌ 后端连接失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function getUserCredits() {
+            const email = document.getElementById('userEmail').value;
+            if (!email) {
+                log('❌ 请输入用户邮箱', 'error');
+                return;
+            }
+
+            try {
+                log(`🔄 获取用户积分: ${email}`, 'info');
+                const response = await fetch(`${BACKEND_URL}/api/credits/by-email/${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`✅ 用户积分信息: <pre>${JSON.stringify(data.data, null, 2)}</pre>`, 'success');
+                } else {
+                    log(`❌ 获取失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function addCredits() {
+            const email = document.getElementById('userEmail').value;
+            const amount = parseInt(document.getElementById('creditAmount').value);
+            const description = document.getElementById('description').value;
+
+            if (!email || !amount || !description) {
+                log('❌ 请填写所有字段', 'error');
+                return;
+            }
+
+            try {
+                log(`🔄 添加积分: ${amount} 给 ${email}`, 'info');
+                const response = await fetch(`${BACKEND_URL}/api/credits/add`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userEmail: email,
+                        amount: amount,
+                        description: description
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`✅ 积分添加成功: <pre>${JSON.stringify(data.data, null, 2)}</pre>`, 'success');
+                } else {
+                    log(`❌ 添加失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function spendCredits() {
+            const email = document.getElementById('userEmail').value;
+            const amount = parseInt(document.getElementById('creditAmount').value);
+            const description = document.getElementById('description').value;
+
+            if (!email || !amount || !description) {
+                log('❌ 请填写所有字段', 'error');
+                return;
+            }
+
+            try {
+                log(`🔄 消费积分: ${amount} 从 ${email}`, 'info');
+                const response = await fetch(`${BACKEND_URL}/api/credits/spend`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        userEmail: email,
+                        amount: amount,
+                        description: description
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`✅ 积分消费成功: <pre>${JSON.stringify(data.data, null, 2)}</pre>`, 'success');
+                } else {
+                    log(`❌ 消费失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function testAllCredits() {
+            try {
+                log('🔄 获取所有用户积分...', 'info');
+                const response = await fetch(`${BACKEND_URL}/api/credits/test/all`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`✅ 所有用户积分 (${data.count}个): <pre>${JSON.stringify(data.data, null, 2)}</pre>`, 'success');
+                } else {
+                    log(`❌ 获取失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        async function getUserTransactions() {
+            const email = document.getElementById('userEmail').value;
+            if (!email) {
+                log('❌ 请输入用户邮箱', 'error');
+                return;
+            }
+
+            try {
+                log(`🔄 获取交易记录: ${email}`, 'info');
+                const response = await fetch(`${BACKEND_URL}/api/credits/transactions/${encodeURIComponent(email)}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    log(`✅ 交易记录: <pre>${JSON.stringify(data.data, null, 2)}</pre>`, 'success');
+                } else {
+                    log(`❌ 获取失败: ${data.message}`, 'error');
+                }
+            } catch (error) {
+                log(`❌ 请求失败: ${error.message}`, 'error');
+            }
+        }
+
+        // 页面加载时自动测试后端
+        window.addEventListener('load', () => {
+            testBackendHealth();
+        });
+    </script>
+</body>
+</html>

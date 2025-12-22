@@ -18,4 +18,9 @@ View your app in AI Studio: https://ai.studio/apps/drive/1D-QbZ0NJ23E-bEFR-T_xmo
 2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
 3. Run the app:
    `npm run dev`
-你需要想一下，假设我们要把这个工具做出来，应该接一个娜娜banana模型，就搞定了一个模型，然后几个提示词应该就搞定了。你看我，你看他是不是也能在那个哪里直接去弄啊？是不是应该AI也可以直接写写完整，我写完整的一个程序，这个比较简单，生图
+
+
+- google登录接上，用户数据传入到数据库
+- 接入积分系统，给用户中创建积分字段， 然后添加积分要在积分表中有用户的id，名字，变化前的积分，变化后的积分，减少积分，获取该用户的积分，
+- 接入支付功能，实现充值添加积分
+- 接入产品功能 实现生成，开始生成前先扣除积分运行

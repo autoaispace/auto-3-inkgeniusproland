@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Menu, Zap, Star, X, LogIn, LogOut, User } from 'lucide-react';
 import { useAuth } from './AuthProvider';
+import { CreditsDisplay } from './CreditsDisplay';
 
 interface NavbarProps {
   onLaunchClick?: () => void;
@@ -89,6 +90,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onLaunchClick }) => {
                       {user.name || user.email.split('@')[0]}
                     </span>
                   </div>
+                  
+                  {/* 积分显示组件 */}
+                  <CreditsDisplay />
+                  
                   <button
                     onClick={logout}
                     className="px-4 py-2 text-white text-[10px] font-bold uppercase tracking-[0.2em] hover:text-zinc-300 transition-all flex items-center gap-2 border border-zinc-700 hover:border-zinc-500"
@@ -141,6 +146,10 @@ export const Navbar: React.FC<NavbarProps> = ({ onLaunchClick }) => {
                     {user.name || user.email.split('@')[0]}
                   </span>
                 </div>
+                
+                {/* 移动端积分显示 */}
+                <CreditsDisplay className="hidden sm:flex" />
+                
                 <button
                   onClick={logout}
                   className="px-2.5 py-1.5 text-white text-[9px] font-bold uppercase tracking-[0.2em] hover:text-zinc-300 transition-all flex items-center gap-1 border border-zinc-700"
