@@ -461,8 +461,19 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+    <div 
+      className="fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center p-4"
+      style={{ 
+        zIndex: 999999,
+        position: 'fixed',
+        inset: 0
+      }}
+      onClick={onClose}
+    >
+      <div 
+        className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
         {currentStep === 'select' && renderSelectStep()}
         {currentStep === 'waiting' && renderWaitingStep()}
         {currentStep === 'completed' && renderCompletedStep()}

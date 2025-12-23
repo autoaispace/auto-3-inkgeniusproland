@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { X, Zap, Star, Check, ExternalLink, Clock, CheckCircle, XCircle, Sparkles, Shield, CreditCard } from 'lucide-react';
+import { div } from 'framer-motion/client';
 
 interface CreditPackage {
   id: string;
@@ -214,16 +215,22 @@ const PaymentModalFixed: React.FC<PaymentModalProps> = ({
 
   return (
     <div 
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50"
+      className="fixed top-0 left-0 w-full h-full bg-black/60 backdrop-blur-sm flex items-center justify-center p-4"
+      style={{ 
+        zIndex: 999999,
+        position: 'fixed',
+        inset: 0
+      }}
       onClick={handleClose}
     >
-      {/* 滚动容器 */}
-      <div className="h-full overflow-y-auto">
-        <div className="min-h-full flex items-center justify-center p-4 py-8">
-          <div 
-            className="bg-white rounded-2xl w-full max-w-5xl shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
+      <div 
+        className="bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-y-auto shadow-2xl"
+        style={{
+          margin: 'auto',
+          transform: 'none'
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
             {/* 选择套餐步骤 */}
             {currentStep === 'select' && (
               <div className="relative">
@@ -488,10 +495,8 @@ const PaymentModalFixed: React.FC<PaymentModalProps> = ({
                 </button>
               </div>
             )}
-          </div>
         </div>
       </div>
-    </div>
   );
 };
 
