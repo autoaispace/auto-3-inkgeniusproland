@@ -24,7 +24,7 @@ type PaymentStep = 'select' | 'waiting' | 'completed';
 const PaymentModalNew: React.FC<PaymentModalProps> = ({
   isOpen,
   onClose,
-  userEmail,
+  userEmail: propUserEmail,
   onPaymentSuccess
 }) => {
   const [packages, setPackages] = useState<CreditPackage[]>([]);
@@ -34,6 +34,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
   const [currentStep, setCurrentStep] = useState<PaymentStep>('select');
   const [paymentWindow, setPaymentWindow] = useState<Window | null>(null);
   const [currentPayment, setCurrentPayment] = useState<any>(null);
+  const [userEmail, setUserEmail] = useState<string | undefined>(propUserEmail);
 
   // 硬编码套餐数据，避免 API 调用问题
   const creditPackages: CreditPackage[] = [
@@ -66,6 +67,30 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
       bonus: 5000
     }
   ];
+
+  // 自动获取用户邮箱
+  useEffect(() => {
+    if (isOpen && !userEmail) {
+      const userStr = localStorage.getItem('user');
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          const email = user.email || user.user_email;
+          if (email) {
+            console.log('🔄 自动获取用户邮箱:', email);
+            setUserEmail(email);
+          }
+        } catch (e) {
+          console.error('❌ 获取用户邮箱失败:', e);
+        }
+      }
+    }
+  }, [isOpen, userEmail]);
+
+  // 更新 userEmail 当 prop 改变时
+  useEffect(() => {
+    setUserEmail(propUserEmail);
+  }, [propUserEmail]);
 
   // 初始化套餐数据
   useEffect(() => {
