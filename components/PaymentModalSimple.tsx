@@ -21,7 +21,7 @@ interface PaymentModalProps {
 
 type PaymentStep = 'select' | 'waiting' | 'completed';
 
-const PaymentModalNew: React.FC<PaymentModalProps> = ({
+const PaymentModalSimple: React.FC<PaymentModalProps> = ({
   isOpen,
   onClose,
   userEmail: propUserEmail,
@@ -35,7 +35,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
   const [paymentWindow, setPaymentWindow] = useState<Window | null>(null);
   const [currentPayment, setCurrentPayment] = useState<any>(null);
 
-  // 硬编码套餐数据，避免 API 调用问题
+  // 硬编码套餐数据
   const creditPackages: CreditPackage[] = [
     {
       id: 'credits_100',
@@ -69,7 +69,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
 
   // 初始化套餐数据
   useEffect(() => {
-    console.log('🔄 PaymentModalNew 初始化:', { isOpen, propUserEmail });
+    console.log('🔄 PaymentModalSimple 初始化:', { isOpen, propUserEmail });
     
     if (isOpen) {
       console.log('✅ 支付模态框打开，初始化数据...');
@@ -94,7 +94,6 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
         if (paymentWindow.closed) {
           clearInterval(checkClosed);
           setPaymentWindow(null);
-          // 窗口关闭后保持等待状态，让用户选择支付结果
         }
       }, 1000);
 
@@ -103,7 +102,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
   }, [paymentWindow]);
 
   const handlePurchase = async () => {
-    console.log('🚀 handlePurchase 开始执行');
+    console.log('🚀 PaymentModalSimple handlePurchase 开始执行');
     
     if (!selectedPackage) {
       console.log('❌ selectedPackage 为空:', selectedPackage);
@@ -111,12 +110,12 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
       return;
     }
     
-    // 直接从 localStorage 获取用户信息，不依赖 props
+    // 直接从 localStorage 获取用户信息
     console.log('🔍 从 localStorage 获取用户信息...');
     const userStr = localStorage.getItem('user');
     console.log('📄 localStorage.user:', userStr);
     
-    let finalUserEmail = propUserEmail;
+    let userEmail = propUserEmail;
     let userId = null;
     
     if (userStr) {
@@ -124,11 +123,10 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
         const user = JSON.parse(userStr);
         console.log('👤 解析的用户对象:', user);
         
-        // 优先使用 localStorage 中的邮箱
-        finalUserEmail = user.email || user.user_email || propUserEmail;
+        userEmail = user.email || user.user_email || propUserEmail;
         userId = user.id || user.user_id || user.sub;
         
-        console.log('📧 最终使用的邮箱:', finalUserEmail);
+        console.log('📧 最终使用的邮箱:', userEmail);
         console.log('🆔 最终使用的用户ID:', userId);
         
       } catch (e) {
@@ -136,7 +134,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
       }
     }
     
-    if (!finalUserEmail) {
+    if (!userEmail) {
       console.log('❌ 仍然没有找到用户邮箱');
       setError('请先登录 - 未找到用户邮箱');
       return;
@@ -164,7 +162,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
       const baseUrl = 'https://whop.com/8429d376-ddb2-4fb6-bebf-b81b25deff04/test-7d-00b2/';
       const params = new URLSearchParams({
         'metadata[user_id]': finalUserId,
-        'metadata[user_email]': finalUserEmail,
+        'metadata[user_email]': userEmail,
         'metadata[package_id]': selectedPackage,
         'metadata[credits]': selectedPkg.credits.toString(),
       });
@@ -172,7 +170,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
       const checkoutUrl = `${baseUrl}?${params.toString()}`;
       
       console.log('🔗 生成的支付链接:', checkoutUrl);
-      console.log('👤 支付用户信息:', { userId: finalUserId, userEmail: finalUserEmail, packageId: selectedPackage });
+      console.log('👤 支付用户信息:', { userId: finalUserId, userEmail, packageId: selectedPackage });
       
       // 保存当前支付信息用于显示
       setCurrentPayment({
@@ -212,7 +210,6 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
 
   const handlePaymentCompleted = () => {
     setCurrentStep('completed');
-    // 触发积分刷新
     if (onPaymentSuccess && currentPayment) {
       const totalCredits = currentPayment.package.credits + (currentPayment.package.bonusCredits || 0);
       onPaymentSuccess(totalCredits);
@@ -504,7 +501,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
   if (!isOpen) return null;
 
   // 添加渲染时的调试信息
-  console.log('🎨 PaymentModalNew 渲染:', {
+  console.log('🎨 PaymentModalSimple 渲染:', {
     isOpen,
     propUserEmail,
     selectedPackage,
@@ -535,4 +532,4 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
   );
 };
 
-export default PaymentModalNew;
+export default PaymentModalSimple;
