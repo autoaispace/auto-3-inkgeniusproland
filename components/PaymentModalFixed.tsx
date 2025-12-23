@@ -38,15 +38,6 @@ const PaymentModalFixed: React.FC<PaymentModalProps> = ({
   // 硬编码套餐数据
   const creditPackages: CreditPackage[] = [
     {
-      id: 'credits_100',
-      name: '100 积分',
-      credits: 100,
-      price: 1.00,
-      currency: 'USD',
-      description: '基础积分包 - 100积分',
-      popular: false
-    },
-    {
       id: 'credits_1000',
       name: '1000 积分',
       credits: 1000,
@@ -54,16 +45,6 @@ const PaymentModalFixed: React.FC<PaymentModalProps> = ({
       currency: 'USD',
       description: '标准积分包 - 1000积分',
       popular: true
-    },
-    {
-      id: 'credits_15000',
-      name: '15000 积分',
-      credits: 15000,
-      price: 100.00,
-      currency: 'USD',
-      description: '超值积分包 - 15000积分（50%奖励）',
-      popular: false,
-      bonus: 5000
     }
   ];
 
@@ -159,7 +140,7 @@ const PaymentModalFixed: React.FC<PaymentModalProps> = ({
       console.log('📦 选中的套餐:', selectedPkg);
 
       // 构建 Whop 支付链接
-      const baseUrl = 'https://whop.com/8429d376-ddb2-4fb6-bebf-b81b25deff04/test-7d-00b2/';
+      const baseUrl = 'https://whop.com/plan_AvXNl6DA1jtOj/';
       const params = new URLSearchParams({
         'metadata[user_id]': userId || '6948dc4897532de886ec876d',
         'metadata[user_email]': userEmail,

@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试新计划 - plan_AvXNl6DA1jtOj</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .test-button {
+            display: block;
+            width: 100%;
+            margin: 10px 0;
+            padding: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            text-decoration: none;
+            text-align: center;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .info-box {
+            background: #e3f2fd;
+            border: 1px solid #2196f3;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .url-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧪 测试新计划配置</h1>
+        <p>测试更新后的 Whop 计划 ID: <code>plan_AvXNl6DA1jtOj</code></p>
+
+        <div class="info-box">
+            <h3>📋 配置更新内容</h3>
+            <ul>
+                <li>✅ 产品ID更新为: <code>plan_AvXNl6DA1jtOj</code></li>
+                <li>✅ 只保留1000积分套餐</li>
+                <li>✅ 移除100积分和15000积分套餐</li>
+                <li>✅ 简化配置，减少复杂性</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h3>🎯 当前套餐配置</h3>
+            <div>
+                <strong>套餐ID:</strong> credits_1000<br>
+                <strong>名称:</strong> 1000 积分<br>
+                <strong>价格:</strong> $10.00 USD<br>
+                <strong>积分:</strong> 1000<br>
+                <strong>描述:</strong> 标准积分包 - 1000积分
+            </div>
+        </div>
+
+        <h3>🔗 测试支付链接</h3>
+        <div id="payment-info"></div>
+        
+        <button class="test-button" onclick="testPayment()">
+            🚀 测试支付 (新计划)
+        </button>
+
+        <button class="test-button" onclick="testWithoutMetadata()" style="background: #28a745;">
+            🧪 测试无元数据支付
+        </button>
+
+        <div class="info-box">
+            <h3>📝 测试说明</h3>
+            <ul>
+                <li>点击按钮会打开新的 Whop 支付页面</li>
+                <li>使用新的计划ID: plan_AvXNl6DA1jtOj</li>
+                <li>完成支付后检查 webhook 日志</li>
+                <li>确认积分是否正确添加到账户</li>
+            </ul>
+        </div>
+
+        <div class="info-box">
+            <h3>🔍 调试信息</h3>
+            <div id="debug-info"></div>
+        </div>
+    </div>
+
+    <script>
+        // 获取用户信息
+        function getUserInfo() {
+            const userStr = localStorage.getItem('user');
+            if (!userStr) {
+                return {
+                    userId: '6948dc4897532de886ec876d',
+                    userEmail: 'test@example.com'
+                };
+            }
+
+            try {
+                const user = JSON.parse(userStr);
+                return {
+                    userId: user.id || user.user_id || user.sub || '6948dc4897532de886ec876d',
+                    userEmail: user.email || user.user_email || 'test@example.com'
+                };
+            } catch (e) {
+                return {
+                    userId: '6948dc4897532de886ec876d',
+                    userEmail: 'test@example.com'
+                };
+            }
+        }
+
+        // 生成支付链接
+        function generatePaymentUrl(includeMetadata = true) {
+            const { userId, userEmail } = getUserInfo();
+            const baseUrl = 'https://whop.com/plan_AvXNl6DA1jtOj/';
+            
+            if (!includeMetadata) {
+                return baseUrl;
+            }
+
+            const params = new URLSearchParams({
+                'metadata[user_id]': userId,
+                'metadata[user_email]': userEmail,
+                'metadata[package_id]': 'credits_1000',
+                'metadata[credits]': '1000',
+            });
+
+            return `${baseUrl}?${params.toString()}`;
+        }
+
+        // 测试支付
+        function testPayment() {
+            const url = generatePaymentUrl(true);
+            console.log('🚀 测试支付链接:', url);
+            
+            const newWindow = window.open(url, 'whop-test-new-plan', 'width=800,height=600,scrollbars=yes,resizable=yes');
+            
+            if (!newWindow) {
+                alert('弹窗被阻止，请允许弹窗或手动复制链接打开:\n\n' + url);
+            }
+        }
+
+        // 测试无元数据支付
+        function testWithoutMetadata() {
+            const url = generatePaymentUrl(false);
+            console.log('🧪 测试无元数据支付链接:', url);
+            
+            const newWindow = window.open(url, 'whop-test-no-metadata', 'width=800,height=600,scrollbars=yes,resizable=yes');
+            
+            if (!newWindow) {
+                alert('弹窗被阻止，请允许弹窗或手动复制链接打开:\n\n' + url);
+            }
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            const { userId, userEmail } = getUserInfo();
+            const paymentUrl = generatePaymentUrl(true);
+            const noMetadataUrl = generatePaymentUrl(false);
+
+            document.getElementById('payment-info').innerHTML = `
+                <div class="url-display">
+                    <strong>带元数据的支付链接:</strong><br>
+                    ${paymentUrl}
+                </div>
+                <div class="url-display">
+                    <strong>无元数据的支付链接:</strong><br>
+                    ${noMetadataUrl}
+                </div>
+            `;
+
+            document.getElementById('debug-info').innerHTML = `
+                <div><strong>用户ID:</strong> ${userId}</div>
+                <div><strong>邮箱:</strong> ${userEmail}</div>
+                <div><strong>套餐ID:</strong> credits_1000</div>
+                <div><strong>积分:</strong> 1000</div>
+                <div><strong>价格:</strong> $10.00</div>
+            `;
+
+            console.log('✅ 新计划测试页面初始化完成');
+            console.log('📋 用户信息:', { userId, userEmail });
+            console.log('🔗 支付链接:', paymentUrl);
+        });
+    </script>
+</body>
+</html>

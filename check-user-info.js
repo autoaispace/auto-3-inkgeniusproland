@@ -57,7 +57,7 @@ if (userStr) {
   }
 }
 
-const baseUrl = 'https://whop.com/8429d376-ddb2-4fb6-bebf-b81b25deff04/test-7d-00b2/';
+const baseUrl = 'https://whop.com/plan_AvXNl6DA1jtOj/';
 const params = new URLSearchParams({
   'metadata[user_id]': testUserId,
   'metadata[user_email]': testUserEmail,

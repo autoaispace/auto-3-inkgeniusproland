@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Whop 元数据调试工具</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .section {
+            margin-bottom: 30px;
+            padding: 20px;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+        }
+        .section h3 {
+            margin: 0 0 15px 0;
+            color: #333;
+        }
+        .info-item {
+            margin: 8px 0;
+            padding: 8px;
+            background: #f8f9fa;
+            border-radius: 4px;
+        }
+        .test-button {
+            display: inline-block;
+            margin: 5px 10px 5px 0;
+            padding: 10px 20px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .test-button:hover {
+            background: #0056b3;
+        }
+        .test-button.method2 { background: #28a745; }
+        .test-button.method2:hover { background: #1e7e34; }
+        .test-button.method3 { background: #ffc107; color: black; }
+        .test-button.method3:hover { background: #e0a800; }
+        .url-display {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin: 10px 0;
+            font-family: monospace;
+            font-size: 12px;
+            word-break: break-all;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 4px;
+            margin: 10px 0;
+        }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .status.warning { background: #fff3cd; color: #856404; border: 1px solid #ffeaa7; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 Whop 元数据调试工具</h1>
+        <p>这个工具帮助调试 Whop 支付中元数据传递的问题</p>
+
+        <div class="section">
+            <h3>1. 用户信息检查</h3>
+            <div id="user-info"></div>
+        </div>
+
+        <div class="section">
+            <h3>2. 支付链接生成</h3>
+            <div id="payment-urls"></div>
+        </div>
+
+        <div class="section">
+            <h3>3. 测试支付链接</h3>
+            <p>点击下面的按钮测试不同的元数据传递方法：</p>
+            <div id="test-buttons"></div>
+        </div>
+
+        <div class="section">
+            <h3>4. Whop 配置建议</h3>
+            <div class="status warning">
+                <strong>如果元数据仍然为空，可能需要在 Whop 后台配置：</strong>
+                <ul>
+                    <li>登录 Whop 商家后台</li>
+                    <li>找到产品设置</li>
+                    <li>启用 "Custom Metadata" 或 "Webhook Metadata"</li>
+                    <li>确保 webhook 端点配置正确</li>
+                    <li>检查产品是否支持元数据传递</li>
+                    <li>尝试使用 Whop 的内嵌支付 API 而不是直接链接</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="section">
+            <h3>5. Webhook 测试</h3>
+            <p>支付完成后，检查服务器日志中的 webhook 数据：</p>
+            <div class="url-display">
+                Webhook URL: https://inkgeniusapi.digworldai.com/api/payment/webhook/whop
+            </div>
+            <p>查找日志中的 "元数据" 字段，确认是否包含用户信息。</p>
+        </div>
+    </div>
+
+    <script>
+        console.log('🔍 调试 Whop 元数据传递问题');
+
+        // 1. 检查用户信息
+        function checkUserInfo() {
+            const userInfoDiv = document.getElementById('user-info');
+            const userStr = localStorage.getItem('user');
+            
+            if (!userStr) {
+                userInfoDiv.innerHTML = '<div class="status error">❌ localStorage 中没有用户信息</div>';
+                return null;
+            }
+
+            try {
+                const user = JSON.parse(userStr);
+                const userEmail = user.email || user.user_email;
+                const userId = user.id || user.user_id || user.sub;
+                
+                userInfoDiv.innerHTML = `
+                    <div class="status success">✅ 用户信息找到</div>
+                    <div class="info-item"><strong>用户ID:</strong> ${userId || '未找到'}</div>
+                    <div class="info-item"><strong>邮箱:</strong> ${userEmail || '未找到'}</div>
+                    <div class="info-item"><strong>完整用户对象:</strong></div>
+                    <div class="url-display">${JSON.stringify(user, null, 2)}</div>
+                `;
+                
+                return { userId, userEmail };
+            } catch (e) {
+                userInfoDiv.innerHTML = `<div class="status error">❌ 解析用户信息失败: ${e.message}</div>`;
+                return null;
+            }
+        }
+
+        // 2. 生成支付链接
+        function generatePaymentUrls(userInfo) {
+            const urlsDiv = document.getElementById('payment-urls');
+            
+            if (!userInfo) {
+                urlsDiv.innerHTML = '<div class="status error">❌ 无法生成支付链接：缺少用户信息</div>';
+                return {};
+            }
+
+            const { userId, userEmail } = userInfo;
+            const baseUrl = 'https://whop.com/plan_AvXNl6DA1jtOj/';
+            
+            // 方法1: URLSearchParams (当前方法)
+            const params1 = new URLSearchParams({
+                'metadata[user_id]': userId || '6948dc4897532de886ec876d',
+                'metadata[user_email]': userEmail || 'test@example.com',
+                'metadata[package_id]': 'credits_1000',
+                'metadata[credits]': '1000',
+            });
+            const url1 = `${baseUrl}?${params1.toString()}`;
+            
+            // 方法2: 手动构建
+            const metadataParams = [
+                `metadata[user_id]=${encodeURIComponent(userId || '6948dc4897532de886ec876d')}`,
+                `metadata[user_email]=${encodeURIComponent(userEmail || 'test@example.com')}`,
+                `metadata[package_id]=${encodeURIComponent('credits_1000')}`,
+                `metadata[credits]=${encodeURIComponent('1000')}`
+            ].join('&');
+            const url2 = `${baseUrl}?${metadataParams}`;
+            
+            // 方法3: 简单参数名
+            const params3 = new URLSearchParams({
+                'user_id': userId || '6948dc4897532de886ec876d',
+                'user_email': userEmail || 'test@example.com',
+                'package_id': 'credits_1000',
+                'credits': '1000',
+            });
+            const url3 = `${baseUrl}?${params3.toString()}`;
+
+            urlsDiv.innerHTML = `
+                <div class="status success">✅ 支付链接已生成</div>
+                
+                <h4>方法1: URLSearchParams (当前使用)</h4>
+                <div class="url-display">${url1}</div>
+                
+                <h4>方法2: 手动构建参数</h4>
+                <div class="url-display">${url2}</div>
+                
+                <h4>方法3: 简单参数名 (测试)</h4>
+                <div class="url-display">${url3}</div>
+            `;
+
+            return { url1, url2, url3 };
+        }
+
+        // 3. 创建测试按钮
+        function createTestButtons(urls) {
+            const buttonsDiv = document.getElementById('test-buttons');
+            
+            if (!urls.url1) {
+                buttonsDiv.innerHTML = '<div class="status error">❌ 无法创建测试按钮：缺少支付链接</div>';
+                return;
+            }
+
+            buttonsDiv.innerHTML = `
+                <button class="test-button" onclick="testPayment('${urls.url1}', '方法1')">
+                    测试方法1 (URLSearchParams)
+                </button>
+                <button class="test-button method2" onclick="testPayment('${urls.url2}', '方法2')">
+                    测试方法2 (手动构建)
+                </button>
+                <button class="test-button method3" onclick="testPayment('${urls.url3}', '方法3')">
+                    测试方法3 (简单参数)
+                </button>
+                <div style="margin-top: 15px;">
+                    <div class="status warning">
+                        <strong>测试说明:</strong>
+                        <ul>
+                            <li>点击按钮会在新窗口中打开 Whop 支付页面</li>
+                            <li>完成支付后，检查服务器 webhook 日志</li>
+                            <li>查看 webhook 中的 "元数据" 字段是否包含用户信息</li>
+                            <li>如果元数据仍为空，可能需要联系 Whop 支持或使用内嵌支付 API</li>
+                        </ul>
+                    </div>
+                </div>
+            `;
+        }
+
+        // 测试支付
+        function testPayment(url, method) {
+            console.log(`🚀 测试${method}:`, url);
+            const newWindow = window.open(url, `whop-test-${method}`, 'width=800,height=600,scrollbars=yes,resizable=yes');
+            
+            if (!newWindow) {
+                alert('弹窗被阻止，请允许弹窗或手动复制链接打开');
+            } else {
+                console.log(`✅ ${method} 支付窗口已打开`);
+            }
+        }
+
+        // 初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔄 初始化调试工具');
+            
+            const userInfo = checkUserInfo();
+            const urls = generatePaymentUrls(userInfo);
+            createTestButtons(urls);
+            
+            console.log('✅ 调试工具初始化完成');
+        });
+
+        // 全局函数
+        window.testPayment = testPayment;
+    </script>
+</body>
+</html>
