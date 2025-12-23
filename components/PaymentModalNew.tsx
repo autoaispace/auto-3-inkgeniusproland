@@ -106,8 +106,54 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
     setError(null);
 
     try {
-      // 获取用户token和用户信息
-      const token = localStorage.getItem('supabase_token') || sessionStorage.getItem('supabase_token');
+      // 获取用户token - 尝试多种可能的存储方式
+      let token = null;
+      
+      // 尝试常见的 token 存储键名
+      const possibleTokenKeys = [
+        'supabase_token',
+        'supabase.auth.token', 
+        'sb-access-token',
+        'sb-refresh-token',
+        'access_token',
+        'auth_token',
+        'user_token'
+      ];
+
+      // 检查 localStorage
+      for (const key of possibleTokenKeys) {
+        const localToken = localStorage.getItem(key);
+        if (localToken) {
+          token = localToken;
+          break;
+        }
+      }
+
+      // 如果 localStorage 没找到，检查 sessionStorage
+      if (!token) {
+        for (const key of possibleTokenKeys) {
+          const sessionToken = sessionStorage.getItem(key);
+          if (sessionToken) {
+            token = sessionToken;
+            break;
+          }
+        }
+      }
+
+      // 尝试从 Supabase 客户端获取 (如果存在)
+      if (!token && typeof window !== 'undefined') {
+        try {
+          const supabase = (window as any).supabase;
+          if (supabase && supabase.auth) {
+            const session = await supabase.auth.getSession();
+            if (session?.data?.session?.access_token) {
+              token = session.data.session.access_token;
+            }
+          }
+        } catch (e) {
+          console.log('无法从 Supabase 客户端获取 token');
+        }
+      }
       
       if (!token) {
         setError('请先登录');
