@@ -19,7 +19,7 @@ if (userStr) {
     
     // 2. 生成支付链接
     console.log('\n=== 2. 生成支付链接 ===');
-    const baseUrl = 'https://whop.com/plan_AvXNl6DA1jtOj/';
+    const baseUrl = 'https://whop.com/checkout/plan_AvXNl6DA1jtOj/';
     
     // 方法1: URLSearchParams (当前方法)
     const params1 = new URLSearchParams({

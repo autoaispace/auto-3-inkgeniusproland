@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,14 +11,16 @@
             margin: 20px;
             background: #f5f5f5;
         }
+
         .container {
             max-width: 600px;
             margin: 0 auto;
             background: white;
             border-radius: 12px;
             padding: 30px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
         }
+
         .test-button {
             display: block;
             width: 100%;
@@ -32,9 +35,11 @@
             text-decoration: none;
             text-align: center;
         }
+
         .test-button:hover {
             background: #0056b3;
         }
+
         .info-box {
             background: #e3f2fd;
             border: 1px solid #2196f3;
@@ -42,6 +47,7 @@
             padding: 15px;
             margin: 15px 0;
         }
+
         .url-display {
             background: #f8f9fa;
             border: 1px solid #dee2e6;
@@ -54,6 +60,7 @@
         }
     </style>
 </head>
+
 <body>
     <div class="container">
         <h1>🧪 测试新计划配置</h1>
@@ -82,7 +89,7 @@
 
         <h3>🔗 测试支付链接</h3>
         <div id="payment-info"></div>
-        
+
         <button class="test-button" onclick="testPayment()">
             🚀 测试支付 (新计划)
         </button>
@@ -135,8 +142,8 @@
         // 生成支付链接
         function generatePaymentUrl(includeMetadata = true) {
             const { userId, userEmail } = getUserInfo();
-            const baseUrl = 'https://whop.com/plan_AvXNl6DA1jtOj/';
-            
+            const baseUrl = 'https://whop.com/checkout/plan_AvXNl6DA1jtOj/';
+
             if (!includeMetadata) {
                 return baseUrl;
             }
@@ -155,9 +162,9 @@
         function testPayment() {
             const url = generatePaymentUrl(true);
             console.log('🚀 测试支付链接:', url);
-            
+
             const newWindow = window.open(url, 'whop-test-new-plan', 'width=800,height=600,scrollbars=yes,resizable=yes');
-            
+
             if (!newWindow) {
                 alert('弹窗被阻止，请允许弹窗或手动复制链接打开:\n\n' + url);
             }
@@ -167,16 +174,16 @@
         function testWithoutMetadata() {
             const url = generatePaymentUrl(false);
             console.log('🧪 测试无元数据支付链接:', url);
-            
+
             const newWindow = window.open(url, 'whop-test-no-metadata', 'width=800,height=600,scrollbars=yes,resizable=yes');
-            
+
             if (!newWindow) {
                 alert('弹窗被阻止，请允许弹窗或手动复制链接打开:\n\n' + url);
             }
         }
 
         // 初始化页面
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             const { userId, userEmail } = getUserInfo();
             const paymentUrl = generatePaymentUrl(true);
             const noMetadataUrl = generatePaymentUrl(false);
@@ -206,4 +213,5 @@
         });
     </script>
 </body>
+
 </html>

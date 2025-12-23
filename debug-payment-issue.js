@@ -50,7 +50,7 @@ function testPaymentFlow() {
     console.log('✅ 用户信息正常:', { userEmail, userId });
     
     // 生成支付链接
-    const baseUrl = 'https://whop.com/plan_AvXNl6DA1jtOj/';
+    const baseUrl = 'https://whop.com/checkout/plan_AvXNl6DA1jtOj/';
     const params = new URLSearchParams({
       'metadata[user_id]': userId || '6948dc4897532de886ec876d',
       'metadata[user_email]': userEmail,

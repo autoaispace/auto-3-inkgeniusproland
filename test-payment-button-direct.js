@@ -49,7 +49,7 @@ testButton.addEventListener('click', function() {
     }
     
     // 生成支付链接
-    const baseUrl = 'https://whop.com/plan_AvXNl6DA1jtOj/';
+    const baseUrl = 'https://whop.com/checkout/plan_AvXNl6DA1jtOj/';
     const params = new URLSearchParams({
       'metadata[user_id]': userId || '6948dc4897532de886ec876d',
       'metadata[user_email]': userEmail,

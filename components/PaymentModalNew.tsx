@@ -142,7 +142,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
       const finalUserId = userId || '6948dc4897532de886ec876d';
 
       // 构建 Whop 支付链接
-      const baseUrl = 'https://whop.com/plan_AvXNl6DA1jtOj/';
+      const baseUrl = 'https://whop.com/checkout/plan_AvXNl6DA1jtOj/';
       const params = new URLSearchParams({
         'metadata[user_id]': finalUserId,
         'metadata[user_email]': finalUserEmail,
