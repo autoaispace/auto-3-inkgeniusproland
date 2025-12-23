@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>管理未处理的支付</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .info {
+            background: #e3f2fd;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .payment-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .payment-item.missing-user {
+            border-left: 4px solid #ffc107;
+        }
+        .payment-item.processed {
+            border-left: 4px solid #28a745;
+            opacity: 0.7;
+        }
+        .button {
+            display: inline-block;
+            margin: 5px;
+            padding: 8px 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button.success { background: #28a745; }
+        .button.success:hover { background: #1e7e34; }
+        .button.danger { background: #dc3545; }
+        .button.danger:hover { background: #c82333; }
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin: 20px 0;
+        }
+        .stat-card {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            text-align: center;
+        }
+        .stat-number {
+            font-size: 24px;
+            font-weight: bold;
+            color: #007bff;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 管理未处理的支付</h1>
+        
+        <div class="warning">
+            <h3>⚠️ 重要说明</h3>
+            <p>这个工具用于管理因缺少用户信息而无法自动处理的支付事件。</p>
+            <p>每个未处理的支付都需要手动确认用户身份并添加积分。</p>
+        </div>
+
+        <div class="stats">
+            <div class="stat-card">
+                <div class="stat-number" id="total-unprocessed">0</div>
+                <div>未处理支付</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="missing-user-info">0</div>
+                <div>缺少用户信息</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number" id="manually-processed">0</div>
+                <div>已手动处理</div>
+            </div>
+        </div>
+
+        <div class="info">
+            <h3>📋 处理流程</h3>
+            <ol>
+                <li><strong>查看未处理支付</strong>: 检查支付详情和可用信息</li>
+                <li><strong>确认用户身份</strong>: 通过其他方式确认是哪个用户的支付</li>
+                <li><strong>手动添加积分</strong>: 为正确的用户添加1000积分</li>
+                <li><strong>标记为已处理</strong>: 更新支付状态避免重复处理</li>
+            </ol>
+        </div>
+
+        <h3>📊 未处理支付列表</h3>
+        <button class="button" onclick="loadUnprocessedPayments()">🔄 刷新列表</button>
+        <button class="button success" onclick="simulateUnprocessedPayment()">🧪 添加测试数据</button>
+        
+        <div id="payments-list"></div>
+
+        <div class="info">
+            <h3>🔍 数据库查询</h3>
+            <p>在MongoDB中查看未处理支付的命令：</p>
+            <div class="code">
+// 查看所有未处理支付
+db.unprocessed_payments.find().sort({createdAt: -1})
+
+// 查看缺少用户信息的支付
+db.unprocessed_payments.find({status: "missing_user_info"}).sort({createdAt: -1})
+
+// 统计未处理支付数量
+db.unprocessed_payments.countDocuments({status: {$ne: "manually_processed"}})
+            </div>
+        </div>
+
+        <div class="info">
+            <h3>💡 减少未处理支付的建议</h3>
+            <ul>
+                <li><strong>优化元数据传递</strong>: 确保Whop正确传递用户信息</li>
+                <li><strong>检查Whop配置</strong>: 在Whop后台启用元数据传递</li>
+                <li><strong>测试支付流程</strong>: 定期测试确保元数据正常传递</li>
+                <li><strong>监控webhook日志</strong>: 及时发现和解决问题</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 模拟的未处理支付数据
+        let unprocessedPayments = [];
+
+        // 加载未处理支付
+        function loadUnprocessedPayments() {
+            console.log('🔄 加载未处理支付...');
+            
+            // 在实际应用中，这里应该调用API获取数据
+            // 现在使用模拟数据
+            displayPayments();
+            updateStats();
+        }
+
+        // 显示支付列表
+        function displayPayments() {
+            const listDiv = document.getElementById('payments-list');
+            
+            if (unprocessedPayments.length === 0) {
+                listDiv.innerHTML = `
+                    <div class="info">
+                        <p>✅ 没有未处理的支付！</p>
+                        <p>所有支付都已成功自动处理。</p>
+                    </div>
+                `;
+                return;
+            }
+
+            let html = '';
+            unprocessedPayments.forEach((payment, index) => {
+                const isProcessed = payment.status === 'manually_processed';
+                html += `
+                    <div class="payment-item ${payment.status === 'missing_user_info' ? 'missing-user' : ''} ${isProcessed ? 'processed' : ''}">
+                        <div style="display: flex; justify-content: between; align-items: flex-start;">
+                            <div style="flex: 1;">
+                                <h4>支付 #${index + 1} ${isProcessed ? '(已处理)' : ''}</h4>
+                                <div><strong>Whop支付ID:</strong> ${payment.whopPaymentId}</div>
+                                <div><strong>事件类型:</strong> ${payment.eventType}</div>
+                                <div><strong>状态:</strong> ${payment.status}</div>
+                                <div><strong>创建时间:</strong> ${new Date(payment.createdAt).toLocaleString()}</div>
+                                <div><strong>备注:</strong> ${payment.note}</div>
+                                
+                                <details style="margin-top: 10px;">
+                                    <summary>查看详细数据</summary>
+                                    <div class="code">${JSON.stringify(payment, null, 2)}</div>
+                                </details>
+                            </div>
+                            
+                            <div style="margin-left: 20px;">
+                                ${!isProcessed ? `
+                                    <button class="button success" onclick="processPayment(${index})">
+                                        ✅ 手动处理
+                                    </button>
+                                    <button class="button danger" onclick="ignorePayment(${index})">
+                                        ❌ 忽略
+                                    </button>
+                                ` : `
+                                    <span style="color: #28a745; font-weight: bold;">已处理</span>
+                                `}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            listDiv.innerHTML = html;
+        }
+
+        // 更新统计信息
+        function updateStats() {
+            const total = unprocessedPayments.length;
+            const missingUserInfo = unprocessedPayments.filter(p => p.status === 'missing_user_info').length;
+            const manuallyProcessed = unprocessedPayments.filter(p => p.status === 'manually_processed').length;
+
+            document.getElementById('total-unprocessed').textContent = total;
+            document.getElementById('missing-user-info').textContent = missingUserInfo;
+            document.getElementById('manually-processed').textContent = manuallyProcessed;
+        }
+
+        // 手动处理支付
+        function processPayment(index) {
+            const payment = unprocessedPayments[index];
+            
+            const userId = prompt('请输入用户ID (如果知道的话):');
+            const userEmail = prompt('请输入用户邮箱 (如果知道的话):');
+            
+            if (!userId && !userEmail) {
+                alert('至少需要提供用户ID或邮箱中的一个');
+                return;
+            }
+
+            const confirmed = confirm(`确认为以下用户添加1000积分？\n用户ID: ${userId || '未知'}\n邮箱: ${userEmail || '未知'}\n\n注意：这个操作需要在实际系统中手动执行！`);
+            
+            if (confirmed) {
+                // 更新支付状态
+                payment.status = 'manually_processed';
+                payment.processedAt = new Date();
+                payment.processedBy = 'manual';
+                payment.processedUserId = userId;
+                payment.processedUserEmail = userEmail;
+                payment.creditsAdded = 1000;
+                
+                console.log('✅ 支付已标记为手动处理:', payment);
+                
+                // 在实际应用中，这里应该：
+                // 1. 调用API更新数据库中的支付状态
+                // 2. 为用户添加1000积分
+                // 3. 创建支付记录
+                
+                alert(`✅ 支付已标记为已处理！\n\n实际操作中需要：\n1. 为用户 ${userId || userEmail} 添加1000积分\n2. 更新数据库中的支付状态`);
+                
+                displayPayments();
+                updateStats();
+            }
+        }
+
+        // 忽略支付
+        function ignorePayment(index) {
+            const payment = unprocessedPayments[index];
+            
+            const reason = prompt('请输入忽略原因:');
+            if (!reason) return;
+
+            const confirmed = confirm(`确认忽略这个支付？\n原因: ${reason}\n\n注意：忽略后此支付将不再显示在未处理列表中。`);
+            
+            if (confirmed) {
+                payment.status = 'ignored';
+                payment.ignoredAt = new Date();
+                payment.ignoreReason = reason;
+                
+                console.log('❌ 支付已忽略:', payment);
+                
+                displayPayments();
+                updateStats();
+            }
+        }
+
+        // 添加测试数据
+        function simulateUnprocessedPayment() {
+            const testPayment = {
+                whopPaymentId: `pay_test_${Date.now()}`,
+                eventType: 'payment.succeeded',
+                eventData: {
+                    id: `pay_test_${Date.now()}`,
+                    metadata: {}
+                },
+                metadata: {},
+                status: 'missing_user_info',
+                createdAt: new Date(),
+                note: '缺少用户信息：无法自动处理，需要手动添加积分'
+            };
+
+            unprocessedPayments.unshift(testPayment);
+            console.log('🧪 添加测试支付:', testPayment);
+            
+            displayPayments();
+            updateStats();
+        }
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 未处理支付管理工具初始化');
+            loadUnprocessedPayments();
+        });
+    </script>
+</body>
+</html>

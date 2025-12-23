@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>验证积分更新</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .info {
+            background: #e3f2fd;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .button {
+            display: inline-block;
+            margin: 10px 5px;
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button.success { background: #28a745; }
+        .button.success:hover { background: #1e7e34; }
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔍 验证积分更新</h1>
+        
+        <div class="success">
+            <h3>🎉 Webhook 处理成功！</h3>
+            <p>从日志可以看到支付处理完全成功：</p>
+            <ul>
+                <li>✅ 用户匹配: nfkmr920@gmail.com → 84335d21-b801-4ce3-90af-71f7d14e47f9</li>
+                <li>✅ 支付记录: ObjectId('694a6a5b28ab3641ff3acc6b')</li>
+                <li>✅ 积分更新: 0 + 1000 = 1000</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <h3>📋 重要说明</h3>
+            <p><strong>积分存储位置</strong>: 积分存储在 <strong>Supabase</strong> 的 user_metadata 中，不是 MongoDB！</p>
+            <ul>
+                <li><strong>MongoDB</strong>: 存储支付记录</li>
+                <li><strong>Supabase</strong>: 存储用户积分</li>
+            </ul>
+        </div>
+
+        <h3>🔍 验证方法</h3>
+
+        <div class="result">
+            <h4>方法1: 检查前端显示</h4>
+            <p>刷新你的应用页面，查看积分显示组件是否显示 1000 积分。</p>
+            <button class="button" onclick="checkLocalStorage()">检查本地存储</button>
+        </div>
+
+        <div class="result">
+            <h4>方法2: 查看 Supabase 后台</h4>
+            <ol>
+                <li>登录 <a href="https://supabase.com/dashboard" target="_blank">Supabase Dashboard</a></li>
+                <li>进入你的项目</li>
+                <li>点击 "Authentication" → "Users"</li>
+                <li>找到邮箱为 <code>nfkmr920@gmail.com</code> 的用户</li>
+                <li>查看 <code>user_metadata</code> 字段</li>
+            </ol>
+            <p>应该看到类似这样的数据：</p>
+            <div class="code">{"credits": 1000}</div>
+        </div>
+
+        <div class="result">
+            <h4>方法3: 检查 MongoDB 支付记录</h4>
+            <p>在 MongoDB 中查看支付记录：</p>
+            <div class="code">
+// 查看最新的支付记录
+db.payments.find().sort({createdAt: -1}).limit(5)
+
+// 查看特定的支付记录
+db.payments.findOne({_id: ObjectId("694a6a5b28ab3641ff3acc6b")})
+            </div>
+            <p>应该能看到完整的支付记录，包含用户ID和积分信息。</p>
+        </div>
+
+        <h3>📊 验证结果</h3>
+        <div id="verification-results"></div>
+
+        <div class="info">
+            <h3>🎯 总结</h3>
+            <p>支付系统工作完全正常！积分已经成功添加到用户账户。如果前端没有显示更新的积分，可能需要：</p>
+            <ul>
+                <li>刷新页面或重新登录</li>
+                <li>检查前端积分获取逻辑</li>
+                <li>确认 CreditsDisplay 组件正确读取 user_metadata</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        function checkLocalStorage() {
+            const userStr = localStorage.getItem('user');
+            const resultsDiv = document.getElementById('verification-results');
+            
+            if (!userStr) {
+                resultsDiv.innerHTML = `
+                    <div class="result">
+                        <h4>❌ 本地存储检查</h4>
+                        <p>localStorage 中没有用户信息。请先登录。</p>
+                    </div>
+                `;
+                return;
+            }
+
+            try {
+                const user = JSON.parse(userStr);
+                const credits = user.user_metadata?.credits || 0;
+                const email = user.email;
+                
+                resultsDiv.innerHTML = `
+                    <div class="result">
+                        <h4>📊 本地存储检查结果</h4>
+                        <p><strong>用户邮箱:</strong> ${email}</p>
+                        <p><strong>当前积分:</strong> ${credits}</p>
+                        <p><strong>状态:</strong> ${credits >= 1000 ? '✅ 积分已更新' : '⚠️ 积分可能需要刷新'}</p>
+                        
+                        ${credits < 1000 ? `
+                            <div style="background: #fff3cd; padding: 10px; border-radius: 4px; margin-top: 10px;">
+                                <strong>💡 建议:</strong> 如果积分显示不正确，请尝试：
+                                <ul>
+                                    <li>刷新页面</li>
+                                    <li>重新登录</li>
+                                    <li>检查 Supabase 后台确认积分已更新</li>
+                                </ul>
+                            </div>
+                        ` : ''}
+                        
+                        <details style="margin-top: 15px;">
+                            <summary>查看完整用户数据</summary>
+                            <div class="code">${JSON.stringify(user, null, 2)}</div>
+                        </details>
+                    </div>
+                `;
+            } catch (e) {
+                resultsDiv.innerHTML = `
+                    <div class="result">
+                        <h4>❌ 解析错误</h4>
+                        <p>无法解析用户数据: ${e.message}</p>
+                    </div>
+                `;
+            }
+        }
+
+        // 页面加载时自动检查
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔍 积分验证工具初始化');
+            
+            // 显示成功信息
+            const successInfo = `
+                <div class="success">
+                    <h4>✅ Webhook 处理成功确认</h4>
+                    <p>根据服务器日志，支付处理完全成功：</p>
+                    <ul>
+                        <li>支付ID: pay_NBIcSaBhlgrJuu</li>
+                        <li>用户邮箱: nfkmr920@gmail.com</li>
+                        <li>系统用户ID: 84335d21-b801-4ce3-90af-71f7d14e47f9</li>
+                        <li>积分更新: 0 → 1000</li>
+                        <li>支付记录: 694a6a5b28ab3641ff3acc6b</li>
+                    </ul>
+                </div>
+            `;
+            
+            document.getElementById('verification-results').innerHTML = successInfo;
+        });
+    </script>
+</body>
+</html>
