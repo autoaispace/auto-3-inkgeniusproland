@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>支付链接生成器</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: #333;
+        }
+
+        input,
+        select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            box-sizing: border-box;
+        }
+
+        .generate-btn {
+            width: 100%;
+            padding: 15px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        .generate-btn:hover {
+            background: #0056b3;
+        }
+
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 20px;
+            margin-top: 20px;
+            word-break: break-all;
+        }
+
+        .url-display {
+            background: #e9ecef;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            word-break: break-all;
+        }
+
+        .test-btn {
+            background: #28a745;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            margin: 5px;
+        }
+
+        .test-btn:hover {
+            background: #218838;
+        }
+
+        .info {
+            background: #d1ecf1;
+            border: 1px solid #bee5eb;
+            color: #0c5460;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 15px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>🔗 Whop 支付链接生成器</h1>
+
+        <div class="info">
+            <strong>📋 说明:</strong><br>
+            这个工具可以帮你生成 Whop 支付链接，用于测试支付流程。
+        </div>
+
+        <form id="paymentForm">
+            <div class="form-group">
+                <label for="userId">用户 ID:</label>
+                <input type="text" id="userId" value="6948dc4897532de886ec876d" required>
+            </div>
+
+            <div class="form-group">
+                <label for="userEmail">用户邮箱:</label>
+                <input type="email" id="userEmail" value="nfkmr920@gmail.com" required>
+            </div>
+
+            <div class="form-group">
+                <label for="packageId">积分套餐:</label>
+                <select id="packageId" required>
+                    <option value="credits_100">100 积分 - $1.00</option>
+                    <option value="credits_1000" selected>1000 积分 - $10.00</option>
+                    <option value="credits_15000">15000 积分 - $100.00</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label for="credits">积分数量:</label>
+                <input type="number" id="credits" value="1000" required>
+            </div>
+
+            <button type="button" class="generate-btn" onclick="generatePaymentUrl()">
+                生成支付链接
+            </button>
+        </form>
+
+        <div id="result" style="display: none;" class="result">
+            <h3>生成的支付链接:</h3>
+            <div id="urlDisplay" class="url-display"></div>
+
+            <div style="margin-top: 15px;">
+                <button class="test-btn" onclick="openPaymentUrl()">在新窗口打开</button>
+                <button class="test-btn" onclick="copyToClipboard()">复制链接</button>
+                <button class="test-btn" onclick="testCurrentUser()">使用当前用户信息</button>
+            </div>
+
+            <div id="urlBreakdown" style="margin-top: 20px;"></div>
+        </div>
+
+        <div class="info">
+            <strong>🔧 API 接口信息:</strong><br>
+            <strong>内嵌支付 API:</strong>
+            <code>POST https://inkgeniusapi.digworldai.com/api/payment/create-embedded</code><br>
+            <strong>请求体:</strong> <code>{"packageId": "credits_1000"}</code><br>
+            <strong>需要 Authorization 头:</strong> <code>Bearer &lt;token&gt;</code><br><br>
+
+            <strong>Webhook URL:</strong> <code>https://inkgeniusapi.digworldai.com/api/payment/webhook/whop</code><br>
+            <strong>支持事件:</strong> <code>payment.succeeded</code>, <code>payment.completed</code>
+        </div>
+    </div>
+
+    <script>
+        let generatedUrl = '';
+
+        const packageInfo = {
+            'credits_100': { credits: 100, name: '100 积分', price: 1.00 },
+            'credits_1000': { credits: 1000, name: '1000 积分', price: 10.00 },
+            'credits_15000': { credits: 15000, name: '15000 积分', price: 100.00 }
+        };
+
+        // 自动更新积分数量
+        document.getElementById('packageId').addEventListener('change', function () {
+            const selectedPackage = this.value;
+            const credits = packageInfo[selectedPackage].credits;
+            document.getElementById('credits').value = credits;
+        });
+
+        function generatePaymentUrl() {
+            const userId = document.getElementById('userId').value;
+            const userEmail = document.getElementById('userEmail').value;
+            const packageId = document.getElementById('packageId').value;
+            const credits = document.getElementById('credits').value;
+
+            if (!userId || !userEmail || !packageId || !credits) {
+                alert('请填写所有必需字段');
+                return;
+            }
+
+            // 构建 Whop 支付链接
+            const baseUrl = 'https://whop.com/8429d376-ddb2-4fb6-bebf-b81b25deff04/test-7d-00b2/';
+            const params = new URLSearchParams({
+                'metadata[user_id]': userId,
+                'metadata[user_email]': userEmail,
+                'metadata[package_id]': packageId,
+                'metadata[credits]': credits,
+            });
+
+            generatedUrl = `${baseUrl}?${params.toString()}`;
+
+            // 显示结果
+            document.getElementById('urlDisplay').textContent = generatedUrl;
+            document.getElementById('result').style.display = 'block';
+
+            // 显示链接分解
+            const breakdown = `
+                <h4>链接分解:</h4>
+                <p><strong>基础 URL:</strong> ${baseUrl}</p>
+                <p><strong>参数:</strong></p>
+                <ul>
+                    <li>metadata[user_id]: ${userId}</li>
+                    <li>metadata[user_email]: ${userEmail}</li>
+                    <li>metadata[package_id]: ${packageId}</li>
+                    <li>metadata[credits]: ${credits}</li>
+                </ul>
+                <p><strong>套餐信息:</strong> ${packageInfo[packageId].name} - $${packageInfo[packageId].price}</p>
+            `;
+            document.getElementById('urlBreakdown').innerHTML = breakdown;
+
+            console.log('🔗 Generated payment URL:', generatedUrl);
+            console.log('📋 Parameters:', { userId, userEmail, packageId, credits });
+        }
+
+        function openPaymentUrl() {
+            if (generatedUrl) {
+                window.open(generatedUrl, '_blank');
+            } else {
+                alert('请先生成支付链接');
+            }
+        }
+
+        function copyToClipboard() {
+            if (generatedUrl) {
+                navigator.clipboard.writeText(generatedUrl).then(() => {
+                    alert('链接已复制到剪贴板');
+                }).catch(() => {
+                    // 备用方法
+                    const textArea = document.createElement('textarea');
+                    textArea.value = generatedUrl;
+                    document.body.appendChild(textArea);
+                    textArea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textArea);
+                    alert('链接已复制到剪贴板');
+                });
+            } else {
+                alert('请先生成支付链接');
+            }
+        }
+
+        function testCurrentUser() {
+            // 尝试从 localStorage 获取当前用户信息
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    console.log('👤 Current user from localStorage:', user);
+
+                    // 更新表单字段
+                    if (user.id) document.getElementById('userId').value = user.id;
+                    if (user.email) document.getElementById('userEmail').value = user.email;
+
+                    alert('已使用当前用户信息更新表单');
+                } catch (e) {
+                    alert('无法解析用户信息: ' + e.message);
+                }
+            } else {
+                alert('未找到当前用户信息');
+            }
+        }
+
+        // 页面加载时尝试使用当前用户信息
+        window.addEventListener('load', function () {
+            const userStr = localStorage.getItem('user');
+            if (userStr) {
+                try {
+                    const user = JSON.parse(userStr);
+                    if (user.id) document.getElementById('userId').value = user.id;
+                    if (user.email) document.getElementById('userEmail').value = user.email;
+                } catch (e) {
+                    console.log('Failed to load user info:', e);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
