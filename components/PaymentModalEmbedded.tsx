@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { X, Zap, Star, Check, ExternalLink, Clock, CheckCircle, XCircle } from 'lucide-react';
+import { X, Zap, Star, Check, CheckCircle, XCircle, Clock } from 'lucide-react';
 
 interface CreditPackage {
   id: string;
@@ -19,9 +19,9 @@ interface PaymentModalProps {
   onPaymentSuccess?: (credits: number) => void;
 }
 
-type PaymentStep = 'select' | 'waiting' | 'completed';
+type PaymentStep = 'select' | 'checkout' | 'completed';
 
-const PaymentModalNew: React.FC<PaymentModalProps> = ({
+const PaymentModalEmbedded: React.FC<PaymentModalProps> = ({
   isOpen,
   onClose,
   userEmail,
@@ -32,10 +32,10 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [currentStep, setCurrentStep] = useState<PaymentStep>('select');
-  const [paymentWindow, setPaymentWindow] = useState<Window | null>(null);
+  const [sessionId, setSessionId] = useState<string | null>(null);
   const [currentPayment, setCurrentPayment] = useState<any>(null);
 
-  // 硬编码套餐数据，避免 API 调用问题
+  // 硬编码套餐数据
   const creditPackages: CreditPackage[] = [
     {
       id: 'credits_100',
@@ -78,23 +78,9 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
       }
       setCurrentStep('select');
       setError(null);
+      setSessionId(null);
     }
   }, [isOpen]);
-
-  // 监听支付窗口关闭
-  useEffect(() => {
-    if (paymentWindow) {
-      const checkClosed = setInterval(() => {
-        if (paymentWindow.closed) {
-          clearInterval(checkClosed);
-          setPaymentWindow(null);
-          // 窗口关闭后保持等待状态，让用户选择支付结果
-        }
-      }, 1000);
-
-      return () => clearInterval(checkClosed);
-    }
-  }, [paymentWindow]);
 
   const handlePurchase = async () => {
     if (!selectedPackage || !userEmail) {
@@ -106,7 +92,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
     setError(null);
 
     try {
-      // 获取用户token和用户信息
+      // 获取用户token
       const token = localStorage.getItem('supabase_token') || sessionStorage.getItem('supabase_token');
       
       if (!token) {
@@ -115,60 +101,33 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
         return;
       }
 
-      // 解析token获取用户ID (简单方法，生产环境建议使用更安全的方式)
-      let userId;
-      try {
-        const tokenPayload = JSON.parse(atob(token.split('.')[1]));
-        userId = tokenPayload.sub;
-      } catch (e) {
-        // 如果解析失败，使用固定ID作为fallback
-        userId = '6948dc4897532de886ec876d';
-      }
-      
-      // 找到选中的套餐
-      const selectedPkg = packages.find(pkg => pkg.id === selectedPackage);
-      if (!selectedPkg) {
-        throw new Error('未找到选中的套餐');
+      const apiUrl = 'https://inkgeniusapi.digworldai.com';
+      console.log('🔄 Creating embedded payment...');
+
+      const response = await fetch(`${apiUrl}/api/payment/create-embedded`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          packageId: selectedPackage
+        })
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
       }
 
-      // 构建 Whop 支付链接
-      const baseUrl = 'https://whop.com/8429d376-ddb2-4fb6-bebf-b81b25deff04/test-7d-00b2/';
-      const params = new URLSearchParams({
-        'metadata[user_id]': userId,
-        'metadata[user_email]': userEmail,
-        'metadata[package_id]': selectedPackage,
-        'metadata[credits]': selectedPkg.credits.toString(),
-      });
-      
-      const checkoutUrl = `${baseUrl}?${params.toString()}`;
-      
-      console.log('🔄 Redirecting to Whop payment:', checkoutUrl);
-      console.log('👤 User info:', { userId, userEmail, packageId: selectedPackage });
-      
-      // 保存当前支付信息用于显示
-      setCurrentPayment({
-        package: {
-          name: selectedPkg.name,
-          credits: selectedPkg.credits,
-          bonusCredits: selectedPkg.bonus || 0,
-          amount: selectedPkg.price,
-          currency: selectedPkg.currency
-        }
-      });
-      
-      // 打开支付窗口
-      const newWindow = window.open(
-        checkoutUrl,
-        'whop-payment',
-        'width=800,height=600,scrollbars=yes,resizable=yes'
-      );
-      
-      if (newWindow) {
-        setPaymentWindow(newWindow);
-        setCurrentStep('waiting');
+      const data = await response.json();
+      console.log('✅ Embedded payment created:', data);
+
+      if (data.success && data.data?.sessionId) {
+        setSessionId(data.data.sessionId);
+        setCurrentPayment(data.data);
+        setCurrentStep('checkout');
       } else {
-        // 如果弹窗被阻止，直接跳转
-        window.location.href = checkoutUrl;
+        throw new Error(data.message || '创建支付失败');
       }
     } catch (error) {
       console.error('❌ Payment creation failed:', error);
@@ -178,18 +137,15 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
     }
   };
 
-  const handlePaymentCompleted = () => {
+  const handlePaymentComplete = (paymentId: string) => {
+    console.log('✅ Payment completed:', paymentId);
     setCurrentStep('completed');
+    
     // 触发积分刷新
-    if (onPaymentSuccess && currentPayment) {
+    if (onPaymentSuccess && currentPayment?.package) {
       const totalCredits = currentPayment.package.credits + (currentPayment.package.bonusCredits || 0);
       onPaymentSuccess(totalCredits);
     }
-  };
-
-  const handlePaymentFailed = () => {
-    setCurrentStep('select');
-    setError('支付未完成，请重试或联系客服');
   };
 
   const formatPrice = (price: number, currency: string) => {
@@ -332,7 +288,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
                 </>
               ) : (
                 <>
-                  <ExternalLink className="w-4 h-4" />
+                  <Zap className="w-4 h-4" />
                   立即购买
                 </>
               )}
@@ -343,39 +299,28 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
     </>
   );
 
-  const renderWaitingStep = () => (
+  const renderCheckoutStep = () => (
     <>
       {/* Header */}
       <div className="flex items-center justify-between p-6 border-b">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">等待支付</h2>
-          <p className="text-gray-600 mt-1">请在新窗口中完成支付</p>
+          <h2 className="text-2xl font-bold text-gray-900">完成支付</h2>
+          <p className="text-gray-600 mt-1">请填写支付信息</p>
         </div>
         <button
-          onClick={onClose}
+          onClick={() => setCurrentStep('select')}
           className="p-2 hover:bg-gray-100 rounded-full transition-colors"
         >
           <X className="w-6 h-6" />
         </button>
       </div>
 
-      {/* Waiting Content */}
-      <div className="p-8 text-center">
-        <div className="w-16 h-16 mx-auto mb-6 relative">
-          <Clock className="w-16 h-16 text-blue-500 animate-pulse" />
-        </div>
-        
-        <h3 className="text-xl font-semibold text-gray-900 mb-2">
-          支付窗口已打开
-        </h3>
-        
-        <p className="text-gray-600 mb-6">
-          请在新打开的窗口中完成支付流程
-        </p>
-
+      {/* Checkout Content */}
+      <div className="p-6">
         {currentPayment && (
           <div className="bg-gray-50 rounded-lg p-4 mb-6">
             <div className="text-sm text-gray-600 space-y-1">
+              <div className="font-medium text-gray-900">订单详情</div>
               <div>套餐：{currentPayment.package.name}</div>
               <div>积分：{currentPayment.package.credits.toLocaleString()}</div>
               {currentPayment.package.bonusCredits > 0 && (
@@ -383,34 +328,59 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
                   奖励：+{currentPayment.package.bonusCredits.toLocaleString()} 积分
                 </div>
               )}
-              <div>金额：{formatPrice(currentPayment.package.amount, currentPayment.package.currency)}</div>
+              <div className="font-medium text-gray-900">
+                金额：{formatPrice(currentPayment.package.amount, currentPayment.package.currency)}
+              </div>
             </div>
           </div>
         )}
 
-        <div className="space-y-3">
-          <p className="text-sm text-gray-500">
-            支付完成后，积分将自动充值到您的账户
-          </p>
-          
-          <div className="flex gap-3 justify-center">
-            <button
-              onClick={handlePaymentCompleted}
-              className="px-6 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
-            >
-              <CheckCircle className="w-4 h-4" />
-              已完成支付
-            </button>
-            
-            <button
-              onClick={handlePaymentFailed}
-              className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
-            >
-              <XCircle className="w-4 h-4" />
-              支付遇到问题
-            </button>
+        {/* Whop Embedded Checkout */}
+        {sessionId && (
+          <div className="border rounded-lg p-4 bg-white">
+            <div className="text-center py-8">
+              <Clock className="w-12 h-12 text-blue-500 mx-auto mb-4" />
+              <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                加载支付表单中...
+              </h3>
+              <p className="text-gray-600 mb-4">
+                Session ID: {sessionId}
+              </p>
+              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
+                <p className="text-yellow-800 text-sm">
+                  <strong>开发提示：</strong> 需要安装 @whop/checkout React 组件来显示内嵌支付表单。
+                </p>
+                <p className="text-yellow-700 text-xs mt-2">
+                  npm install @whop/checkout
+                </p>
+              </div>
+              
+              {/* 临时的手动完成按钮 */}
+              <div className="mt-6 space-y-3">
+                <p className="text-sm text-gray-500">
+                  开发测试 - 模拟支付完成：
+                </p>
+                <div className="flex gap-3 justify-center">
+                  <button
+                    onClick={() => handlePaymentComplete(`test_${Date.now()}`)}
+                    className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors flex items-center gap-2"
+                  >
+                    <CheckCircle className="w-4 h-4" />
+                    模拟支付成功
+                  </button>
+                  
+                  <button
+                    onClick={() => setCurrentStep('select')}
+                    className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
+                  >
+                    <XCircle className="w-4 h-4" />
+                    返回选择
+                  </button>
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </>
   );
@@ -443,7 +413,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
           您的积分已经成功充值，可以立即开始使用
         </p>
 
-        {currentPayment && (
+        {currentPayment?.package && (
           <div className="bg-green-50 border border-green-200 rounded-lg p-4 mb-6">
             <div className="text-sm space-y-1">
               <div className="font-medium text-green-800">充值详情</div>
@@ -486,11 +456,11 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
         onClick={(e) => e.stopPropagation()}
       >
         {currentStep === 'select' && renderSelectStep()}
-        {currentStep === 'waiting' && renderWaitingStep()}
+        {currentStep === 'checkout' && renderCheckoutStep()}
         {currentStep === 'completed' && renderCompletedStep()}
       </div>
     </div>
   );
 };
 
-export default PaymentModalNew;
+export default PaymentModalEmbedded;
