@@ -70,39 +70,70 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
 
   // 自动获取用户邮箱
   useEffect(() => {
+    console.log('🔄 自动获取用户邮箱 useEffect:', { isOpen, userEmail });
+
     if (isOpen && !userEmail) {
+      console.log('🔍 尝试从 localStorage 自动获取用户邮箱...');
+
       const userStr = localStorage.getItem('user');
+      console.log('📄 localStorage.user 内容:', userStr);
+
       if (userStr) {
         try {
           const user = JSON.parse(userStr);
+          console.log('👤 解析的用户对象:', user);
+
           const email = user.email || user.user_email;
+          console.log('📧 提取的邮箱:', email);
+
           if (email) {
-            console.log('🔄 自动获取用户邮箱:', email);
+            console.log('✅ 自动设置用户邮箱:', email);
             setUserEmail(email);
+          } else {
+            console.log('❌ 用户对象中没有邮箱字段');
+            console.log('📋 用户对象的所有字段:', Object.keys(user));
           }
         } catch (e) {
-          console.error('❌ 获取用户邮箱失败:', e);
+          console.error('❌ 解析用户对象失败:', e);
         }
+      } else {
+        console.log('❌ localStorage 中没有 user 对象');
+        console.log('📋 localStorage 中的所有键:', Object.keys(localStorage));
       }
     }
   }, [isOpen, userEmail]);
 
   // 更新 userEmail 当 prop 改变时
   useEffect(() => {
-    setUserEmail(propUserEmail);
+    console.log('🔄 userEmail prop 更新:', { propUserEmail, currentUserEmail: userEmail });
+    if (propUserEmail !== userEmail) {
+      setUserEmail(propUserEmail);
+    }
   }, [propUserEmail]);
 
   // 初始化套餐数据
   useEffect(() => {
+    console.log('🔄 PaymentModalNew 初始化 useEffect:', { isOpen });
+
     if (isOpen) {
+      console.log('✅ 支付模态框打开，初始化数据...');
       setPackages(creditPackages);
+
       // 默认选择热门套餐
       const popularPackage = creditPackages.find(pkg => pkg.popular);
       if (popularPackage) {
+        console.log('📦 默认选择热门套餐:', popularPackage.id);
         setSelectedPackage(popularPackage.id);
       }
+
       setCurrentStep('select');
       setError(null);
+
+      console.log('📋 初始化完成，当前状态:', {
+        packagesCount: creditPackages.length,
+        selectedPackage: popularPackage?.id,
+        userEmail
+      });
     }
   }, [isOpen]);
 
@@ -122,10 +153,54 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
   }, [paymentWindow]);
 
   const handlePurchase = async () => {
-    if (!selectedPackage || !userEmail) {
-      setError('请选择套餐并确保已登录');
+    console.log('🚀 handlePurchase 开始执行');
+    console.log('📋 当前状态:', { selectedPackage, userEmail, loading });
+
+    if (!selectedPackage) {
+      console.log('❌ selectedPackage 为空:', selectedPackage);
+      setError('请选择积分套餐');
       return;
     }
+
+    if (!userEmail) {
+      console.log('❌ userEmail 为空:', userEmail);
+      console.log('🔍 尝试从 localStorage 获取用户邮箱...');
+
+      const userStr = localStorage.getItem('user');
+      console.log('📄 localStorage.user:', userStr);
+
+      if (userStr) {
+        try {
+          const user = JSON.parse(userStr);
+          console.log('👤 解析的用户对象:', user);
+
+          const email = user.email || user.user_email;
+          console.log('📧 提取的邮箱:', email);
+
+          if (email) {
+            console.log('✅ 找到用户邮箱，更新状态');
+            setUserEmail(email);
+            // 重新调用 handlePurchase
+            setTimeout(() => handlePurchase(), 100);
+            return;
+          } else {
+            console.log('❌ 用户对象中没有邮箱字段');
+            console.log('📋 用户对象的所有字段:', Object.keys(user));
+          }
+        } catch (e) {
+          console.log('❌ 解析用户对象失败:', e.message);
+        }
+      } else {
+        console.log('❌ localStorage 中没有 user 对象');
+        console.log('📋 localStorage 中的所有键:', Object.keys(localStorage));
+      }
+
+      setError('请先登录 - 未找到用户邮箱');
+      return;
+    }
+
+    console.log('✅ 基础检查通过，开始支付流程');
+    console.log('📋 支付参数:', { selectedPackage, userEmail });
 
     setLoading(true);
     setError(null);
@@ -134,29 +209,32 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
       // 获取用户信息 - 检查 localStorage 中的 user 对象
       let token = null;
       let userId = null;
-      
+
+      console.log('🔍 开始获取用户认证信息...');
+
       // 首先检查 localStorage 中的 user 对象
       const userStr = localStorage.getItem('user');
       if (userStr) {
         try {
           const user = JSON.parse(userStr);
           console.log('👤 Found user in localStorage:', user);
-          
+
           // 尝试从 user 对象中提取 token
           token = user.access_token || user.accessToken || user.token || user.jwt;
           userId = user.id || user.user_id || user.sub;
-          
+
           console.log('🔍 Extracted from user object:', { hasToken: !!token, userId });
         } catch (e) {
           console.log('❌ Failed to parse user object:', e);
         }
       }
-      
+
       // 如果还没找到 token，尝试其他方式
       if (!token) {
+        console.log('🔍 在其他位置查找 token...');
         const possibleTokenKeys = [
           'supabase_token',
-          'supabase.auth.token', 
+          'supabase.auth.token',
           'sb-access-token',
           'sb-refresh-token',
           'access_token',
@@ -191,6 +269,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
 
       // 尝试从 Supabase 客户端获取 (如果存在)
       if (!token && typeof window !== 'undefined') {
+        console.log('🔍 尝试从 Supabase 客户端获取 token...');
         try {
           const supabase = (window as any).supabase;
           if (supabase && supabase.auth) {
@@ -200,12 +279,14 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
               userId = session.data.session.user?.id;
               console.log('✅ Found token from Supabase client');
             }
+          } else {
+            console.log('❌ 没有找到 Supabase 客户端');
           }
         } catch (e) {
           console.log('❌ Failed to get token from Supabase client:', e);
         }
       }
-      
+
       // 如果仍然没有 token，但有 userEmail，尝试继续（可能是无 token 的测试模式）
       if (!token) {
         console.log('⚠️ No token found, but userEmail provided. Continuing with fallback...');
@@ -215,32 +296,38 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
       }
 
       // 如果没有 userId，尝试从 token 解析或使用 fallback
-      if (!userId && token && token !== 'test_token_' + Date.now()) {
+      if (!userId && token && !token.startsWith('test_token_')) {
+        console.log('🔍 尝试从 token 解析 userId...');
         try {
           const tokenPayload = JSON.parse(atob(token.split('.')[1]));
           userId = tokenPayload.sub || tokenPayload.user_id || tokenPayload.id;
+          console.log('✅ 从 token 解析出 userId:', userId);
         } catch (e) {
           console.log('❌ Failed to parse token for userId:', e);
         }
       }
-      
+
       // 最终 fallback
       if (!userId) {
         userId = '6948dc4897532de886ec876d';
+        console.log('⚠️ 使用默认 userId:', userId);
       }
 
-      console.log('🔄 Final auth info:', { 
-        hasToken: !!token, 
-        userId, 
+      console.log('🔄 Final auth info:', {
+        hasToken: !!token,
+        userId,
         userEmail,
         tokenPreview: token ? token.substring(0, 20) + '...' : 'none'
       });
-      
+
       // 找到选中的套餐
       const selectedPkg = packages.find(pkg => pkg.id === selectedPackage);
       if (!selectedPkg) {
+        console.log('❌ 未找到选中的套餐:', selectedPackage);
         throw new Error('未找到选中的套餐');
       }
+
+      console.log('📦 选中的套餐:', selectedPkg);
 
       // 构建 Whop 支付链接
       const baseUrl = 'https://whop.com/8429d376-ddb2-4fb6-bebf-b81b25deff04/test-7d-00b2/';
@@ -250,12 +337,12 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
         'metadata[package_id]': selectedPackage,
         'metadata[credits]': selectedPkg.credits.toString(),
       });
-      
+
       const checkoutUrl = `${baseUrl}?${params.toString()}`;
-      
-      console.log('🔄 Redirecting to Whop payment:', checkoutUrl);
-      console.log('👤 User info:', { userId, userEmail, packageId: selectedPackage });
-      
+
+      console.log('🔗 生成的支付链接:', checkoutUrl);
+      console.log('👤 支付用户信息:', { userId, userEmail, packageId: selectedPackage });
+
       // 保存当前支付信息用于显示
       setCurrentPayment({
         package: {
@@ -266,18 +353,22 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
           currency: selectedPkg.currency
         }
       });
-      
+
+      console.log('🪟 尝试打开支付窗口...');
+
       // 打开支付窗口
       const newWindow = window.open(
         checkoutUrl,
         'whop-payment',
         'width=800,height=600,scrollbars=yes,resizable=yes'
       );
-      
+
       if (newWindow) {
+        console.log('✅ 支付窗口已打开');
         setPaymentWindow(newWindow);
         setCurrentStep('waiting');
       } else {
+        console.log('⚠️ 弹窗被阻止，直接跳转');
         // 如果弹窗被阻止，直接跳转
         window.location.href = checkoutUrl;
       }
@@ -312,15 +403,15 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
 
   const getPackageFeatures = (pkg: CreditPackage) => {
     const features = [`${pkg.credits.toLocaleString()} 积分`];
-    
+
     if (pkg.bonus) {
       features.push(`额外赠送 ${pkg.bonus.toLocaleString()} 积分`);
     }
-    
+
     if (pkg.popular) {
       features.push('最受欢迎');
     }
-    
+
     return features;
   };
 
@@ -352,11 +443,10 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
         {packages.map((pkg) => (
           <div
             key={pkg.id}
-            className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${
-              selectedPackage === pkg.id
+            className={`relative border-2 rounded-xl p-6 cursor-pointer transition-all ${selectedPackage === pkg.id
                 ? 'border-blue-500 bg-blue-50'
                 : 'border-gray-200 hover:border-gray-300'
-            } ${pkg.popular ? 'ring-2 ring-blue-200' : ''}`}
+              } ${pkg.popular ? 'ring-2 ring-blue-200' : ''}`}
             onClick={() => setSelectedPackage(pkg.id)}
           >
             {/* Popular Badge */}
@@ -372,11 +462,10 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex-1">
                 <div className="flex items-center gap-3">
-                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${
-                    selectedPackage === pkg.id
+                  <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${selectedPackage === pkg.id
                       ? 'border-blue-500 bg-blue-500'
                       : 'border-gray-300'
-                  }`}>
+                    }`}>
                     {selectedPackage === pkg.id && (
                       <Check className="w-3 h-3 text-white" />
                     )}
@@ -475,11 +564,11 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
         <div className="w-16 h-16 mx-auto mb-6 relative">
           <Clock className="w-16 h-16 text-blue-500 animate-pulse" />
         </div>
-        
+
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
           支付窗口已打开
         </h3>
-        
+
         <p className="text-gray-600 mb-6">
           请在新打开的窗口中完成支付流程
         </p>
@@ -503,7 +592,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
           <p className="text-sm text-gray-500">
             支付完成后，积分将自动充值到您的账户
           </p>
-          
+
           <div className="flex gap-3 justify-center">
             <button
               onClick={handlePaymentCompleted}
@@ -512,7 +601,7 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
               <CheckCircle className="w-4 h-4" />
               已完成支付
             </button>
-            
+
             <button
               onClick={handlePaymentFailed}
               className="px-6 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors flex items-center gap-2"
@@ -545,11 +634,11 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
       {/* Success Content */}
       <div className="p-8 text-center">
         <CheckCircle className="w-16 h-16 text-green-500 mx-auto mb-6" />
-        
+
         <h3 className="text-xl font-semibold text-gray-900 mb-2">
           支付成功完成！
         </h3>
-        
+
         <p className="text-gray-600 mb-6">
           您的积分已经成功充值，可以立即开始使用
         </p>
@@ -582,17 +671,28 @@ const PaymentModalNew: React.FC<PaymentModalProps> = ({
 
   if (!isOpen) return null;
 
+  // 添加渲染时的调试信息
+  console.log('🎨 PaymentModalNew 渲染:', {
+    isOpen,
+    userEmail,
+    propUserEmail,
+    selectedPackage,
+    currentStep,
+    error,
+    packagesCount: packages.length
+  });
+
   return (
-    <div 
+    <div
       className="fixed top-0 left-0 w-full h-full bg-black/50 flex items-center justify-center p-4"
-      style={{ 
+      style={{
         zIndex: 999999,
         position: 'fixed',
         inset: 0
       }}
       onClick={onClose}
     >
-      <div 
+      <div
         className="bg-white rounded-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto shadow-2xl"
         onClick={(e) => e.stopPropagation()}
       >
