@@ -7,11 +7,16 @@ export interface User {
   email: string;
   name?: string;
   avatar?: string;
+  accessToken?: string; // 添加访问token字段
 }
 
 // 存储用户信息到 localStorage
 export const setUser = (user: User) => {
   localStorage.setItem('user', JSON.stringify(user));
+  // 单独存储token以便API调用
+  if (user.accessToken) {
+    localStorage.setItem('supabase_access_token', user.accessToken);
+  }
 };
 
 // 从 localStorage 获取用户信息
@@ -19,15 +24,34 @@ export const getUser = (): User | null => {
   const userStr = localStorage.getItem('user');
   if (!userStr) return null;
   try {
-    return JSON.parse(userStr);
+    const user = JSON.parse(userStr);
+    // 如果用户信息中没有token，尝试从单独的存储中获取
+    if (!user.accessToken) {
+      const token = localStorage.getItem('supabase_access_token');
+      if (token) {
+        user.accessToken = token;
+      }
+    }
+    return user;
   } catch {
     return null;
   }
 };
 
+// 获取访问token
+export const getAccessToken = (): string | null => {
+  const user = getUser();
+  if (user?.accessToken) {
+    return user.accessToken;
+  }
+  // 后备方案：从单独的存储中获取
+  return localStorage.getItem('supabase_access_token');
+};
+
 // 清除用户信息
 export const clearUser = () => {
   localStorage.removeItem('user');
+  localStorage.removeItem('supabase_access_token');
 };
 
 // 检查是否已登录
@@ -63,6 +87,7 @@ export const handleAuthCallback = (): User | null => {
   const id = urlParams.get('id');
   const avatar = urlParams.get('avatar');
   const authSuccess = urlParams.get('auth_success');
+  const accessToken = urlParams.get('access_token');
 
   console.log('🔍 Checking auth callback params:', { 
     email, 
@@ -70,6 +95,7 @@ export const handleAuthCallback = (): User | null => {
     id, 
     avatar: !!avatar, 
     authSuccess,
+    hasAccessToken: !!accessToken,
     fullUrl: window.location.href 
   });
 
@@ -79,9 +105,13 @@ export const handleAuthCallback = (): User | null => {
       email: decodeURIComponent(email),
       name: name ? decodeURIComponent(name) : undefined,
       avatar: avatar ? decodeURIComponent(avatar) : undefined,
+      accessToken: accessToken || undefined,
     };
     
-    console.log('🔐 Auth callback - User info received:', user);
+    console.log('🔐 Auth callback - User info received:', {
+      ...user,
+      accessToken: user.accessToken ? '***' : undefined // 隐藏token内容
+    });
     setUser(user);
     
     return user;

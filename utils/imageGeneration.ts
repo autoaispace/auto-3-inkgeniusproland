@@ -1,15 +1,23 @@
+import { getAccessToken } from './auth';
+
 // 图像生成工具类
 export class ImageGenerationService {
   private baseUrl: string;
 
   constructor() {
     // 使用后端API端点 - Vite项目使用VITE_前缀的环境变量
-    this.baseUrl = import.meta.env.VITE_API_URL || 
-                   import.meta.env.VITE_BACKEND_URL || 
-                   process.env.REACT_APP_API_URL || 
+    this.baseUrl = (import.meta as any).env?.VITE_API_URL || 
+                   (import.meta as any).env?.VITE_BACKEND_URL || 
                    'https://inkgeniusapi.digworldai.com';
     
     console.log('🔗 API Base URL:', this.baseUrl);
+  }
+
+  /**
+   * 获取认证token
+   */
+  private getAuthToken(): string | null {
+    return getAccessToken();
   }
 
   /**
@@ -30,7 +38,13 @@ export class ImageGenerationService {
     metadata?: any;
   }> {
     try {
-      const token = localStorage.getItem('supabase.auth.token');
+      const token = this.getAuthToken();
+      
+      if (!token) {
+        throw new Error('请先登录');
+      }
+      
+      console.log('🎨 发起文生图请求:', { prompt: prompt.substring(0, 50), hasToken: !!token });
       
       const response = await fetch(`${this.baseUrl}/api/gemini/text-to-image`, {
         method: 'POST',
@@ -50,9 +64,11 @@ export class ImageGenerationService {
       const result = await response.json();
       
       if (!response.ok) {
+        console.error('❌ API请求失败:', response.status, result);
         throw new Error(result.message || '生成失败');
       }
 
+      console.log('✅ 文生图请求成功');
       return result;
     } catch (error) {
       console.error('文生图生成失败:', error);
@@ -82,7 +98,11 @@ export class ImageGenerationService {
     metadata?: any;
   }> {
     try {
-      const token = localStorage.getItem('supabase.auth.token');
+      const token = this.getAuthToken();
+      
+      if (!token) {
+        throw new Error('请先登录');
+      }
       
       const formData = new FormData();
       formData.append('prompt', prompt);
@@ -135,7 +155,11 @@ export class ImageGenerationService {
     metadata?: any;
   }> {
     try {
-      const token = localStorage.getItem('supabase.auth.token');
+      const token = this.getAuthToken();
+      
+      if (!token) {
+        throw new Error('请先登录');
+      }
       
       const response = await fetch(`${this.baseUrl}/api/gemini/image-to-image-base64`, {
         method: 'POST',
@@ -174,7 +198,11 @@ export class ImageGenerationService {
    */
   async getGenerationHistory(limit: number = 20, offset: number = 0) {
     try {
-      const token = localStorage.getItem('supabase.auth.token');
+      const token = this.getAuthToken();
+      
+      if (!token) {
+        throw new Error('请先登录');
+      }
       
       const response = await fetch(
         `${this.baseUrl}/api/gemini/history?limit=${limit}&offset=${offset}`,
