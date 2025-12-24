@@ -5,6 +5,7 @@ import { TabMode } from '../types';
 import { InkBackground } from './InkBackground';
 import { trackGenerationEvent } from '../utils/analytics';
 import { imageGenService } from '../utils/imageGeneration';
+import { checkEnvironment } from '../utils/envCheck';
 
 interface HeroProps {
   activeTab: TabMode;
@@ -101,6 +102,10 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
   const handleGenerateClick = async () => {
     setError(null);
     setIsGenerating(true);
+    
+    // 检查环境配置
+    const envCheck = checkEnvironment();
+    console.log('🔧 Environment check result:', envCheck);
     
     try {
       // 发送GTM事件

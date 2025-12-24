@@ -3,8 +3,13 @@ export class ImageGenerationService {
   private baseUrl: string;
 
   constructor() {
-    // 使用后端API端点
-    this.baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:3001';
+    // 使用后端API端点 - Vite项目使用VITE_前缀的环境变量
+    this.baseUrl = import.meta.env.VITE_API_URL || 
+                   import.meta.env.VITE_BACKEND_URL || 
+                   process.env.REACT_APP_API_URL || 
+                   'https://inkgeniusapi.digworldai.com';
+    
+    console.log('🔗 API Base URL:', this.baseUrl);
   }
 
   /**

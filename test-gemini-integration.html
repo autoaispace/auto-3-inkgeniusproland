@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gemini AI 图像生成测试</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background: #1a1a1a;
+            color: white;
+        }
+        .container {
+            background: #2a2a2a;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        input, textarea, select, button {
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #555;
+            border-radius: 4px;
+            background: #333;
+            color: white;
+        }
+        button {
+            background: #007bff;
+            cursor: pointer;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        button:disabled {
+            background: #555;
+            cursor: not-allowed;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 15px;
+            border-radius: 4px;
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+        .image-result {
+            text-align: center;
+            margin-top: 20px;
+        }
+        .image-result img {
+            max-width: 100%;
+            border: 2px solid #555;
+            border-radius: 8px;
+        }
+        .loading {
+            text-align: center;
+            padding: 20px;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+        }
+        .tab {
+            flex: 1;
+            padding: 10px;
+            background: #333;
+            border: 1px solid #555;
+            cursor: pointer;
+            text-align: center;
+        }
+        .tab.active {
+            background: #007bff;
+        }
+        .tab-content {
+            display: none;
+        }
+        .tab-content.active {
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <h1>🎨 Gemini AI 图像生成测试</h1>
+    
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('text-to-image')">文生图</div>
+        <div class="tab" onclick="switchTab('image-to-image')">图生图</div>
+        <div class="tab" onclick="switchTab('test-api')">API测试</div>
+    </div>
+
+    <!-- 文生图测试 -->
+    <div id="text-to-image" class="tab-content active">
+        <div class="container">
+            <h2>文生图测试</h2>
+            <textarea id="textPrompt" placeholder="描述你想要的纹身设计..." rows="3">A traditional dragon tattoo design with intricate details, black and white, suitable for arm placement</textarea>
+            
+            <select id="textStyle">
+                <option value="realistic">Realistic</option>
+                <option value="traditional">Traditional</option>
+                <option value="minimalist">Minimalist</option>
+                <option value="geometric">Geometric</option>
+                <option value="watercolor">Watercolor</option>
+                <option value="blackwork">Blackwork</option>
+            </select>
+            
+            <button onclick="generateTextToImage()" id="textBtn">生成图像</button>
+            
+            <div id="textResult"></div>
+        </div>
+    </div>
+
+    <!-- 图生图测试 -->
+    <div id="image-to-image" class="tab-content">
+        <div class="container">
+            <h2>图生图测试</h2>
+            <input type="file" id="imageFile" accept="image/*">
+            <textarea id="imagePrompt" placeholder="描述如何修改图像..." rows="3">Transform this into a traditional tattoo style with bold outlines</textarea>
+            
+            <select id="imageStyle">
+                <option value="realistic">Realistic</option>
+                <option value="traditional">Traditional</option>
+                <option value="minimalist">Minimalist</option>
+                <option value="geometric">Geometric</option>
+                <option value="watercolor">Watercolor</option>
+                <option value="blackwork">Blackwork</option>
+            </select>
+            
+            <button onclick="generateImageToImage()" id="imageBtn">生成图像</button>
+            
+            <div id="imageResult"></div>
+        </div>
+    </div>
+
+    <!-- API测试 -->
+    <div id="test-api" class="tab-content">
+        <div class="container">
+            <h2>API连接测试</h2>
+            <button onclick="testApiConnection()" id="testBtn">测试API连接</button>
+            <div id="testResult"></div>
+        </div>
+    </div>
+
+    <script>
+        const API_BASE = 'https://inkgeniusapi.digworldai.com/api/gemini';
+        // const API_BASE = 'http://localhost:8080/api/gemini'; // 本地测试
+
+        function switchTab(tabName) {
+            // 隐藏所有标签内容
+            document.querySelectorAll('.tab-content').forEach(content => {
+                content.classList.remove('active');
+            });
+            document.querySelectorAll('.tab').forEach(tab => {
+                tab.classList.remove('active');
+            });
+            
+            // 显示选中的标签
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        function showLoading(elementId) {
+            document.getElementById(elementId).innerHTML = `
+                <div class="loading">
+                    <p>🔄 生成中，请稍候...</p>
+                </div>
+            `;
+        }
+
+        function showResult(elementId, success, message, imageData = null) {
+            const resultClass = success ? 'success' : 'error';
+            let html = `<div class="result ${resultClass}">${message}</div>`;
+            
+            if (success && imageData) {
+                html += `
+                    <div class="image-result">
+                        <img src="${imageData}" alt="Generated Image">
+                        <br>
+                        <a href="${imageData}" download="generated-tattoo.png">
+                            <button style="width: auto; margin-top: 10px;">下载图像</button>
+                        </a>
+                    </div>
+                `;
+            }
+            
+            document.getElementById(elementId).innerHTML = html;
+        }
+
+        async function generateTextToImage() {
+            const prompt = document.getElementById('textPrompt').value.trim();
+            const style = document.getElementById('textStyle').value;
+            const btn = document.getElementById('textBtn');
+            
+            if (!prompt) {
+                showResult('textResult', false, '请输入描述文字');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+            showLoading('textResult');
+            
+            try {
+                const response = await fetch(`${API_BASE}/text-to-image`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        // 注意：实际使用时需要添加认证token
+                        // 'Authorization': `Bearer ${token}`
+                    },
+                    body: JSON.stringify({
+                        prompt,
+                        style,
+                        width: 512,
+                        height: 512
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('textResult', true, '✅ 图像生成成功！', result.imageData);
+                } else {
+                    showResult('textResult', false, `❌ 生成失败: ${result.message || result.error}`);
+                }
+            } catch (error) {
+                showResult('textResult', false, `❌ 请求失败: ${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '生成图像';
+            }
+        }
+
+        async function generateImageToImage() {
+            const fileInput = document.getElementById('imageFile');
+            const prompt = document.getElementById('imagePrompt').value.trim();
+            const style = document.getElementById('imageStyle').value;
+            const btn = document.getElementById('imageBtn');
+            
+            if (!fileInput.files[0]) {
+                showResult('imageResult', false, '请选择图像文件');
+                return;
+            }
+            
+            if (!prompt) {
+                showResult('imageResult', false, '请输入修改描述');
+                return;
+            }
+            
+            btn.disabled = true;
+            btn.textContent = '生成中...';
+            showLoading('imageResult');
+            
+            try {
+                const formData = new FormData();
+                formData.append('image', fileInput.files[0]);
+                formData.append('prompt', prompt);
+                formData.append('style', style);
+                formData.append('strength', '0.7');
+                formData.append('width', '512');
+                formData.append('height', '512');
+                
+                const response = await fetch(`${API_BASE}/image-to-image`, {
+                    method: 'POST',
+                    headers: {
+                        // 注意：实际使用时需要添加认证token
+                        // 'Authorization': `Bearer ${token}`
+                    },
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('imageResult', true, '✅ 图像生成成功！', result.imageData);
+                } else {
+                    showResult('imageResult', false, `❌ 生成失败: ${result.message || result.error}`);
+                }
+            } catch (error) {
+                showResult('imageResult', false, `❌ 请求失败: ${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '生成图像';
+            }
+        }
+
+        async function testApiConnection() {
+            const btn = document.getElementById('testBtn');
+            btn.disabled = true;
+            btn.textContent = '测试中...';
+            
+            try {
+                const response = await fetch(`${API_BASE}/test`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult('testResult', true, `✅ API连接成功！
+                        <br>连接状态: ${result.data.connected ? '已连接' : '未连接'}
+                        <br>API密钥: ${result.data.config.hasApiKey ? '已配置' : '未配置'}
+                        <br>项目ID: ${result.data.config.projectId}
+                        <br>模型: ${JSON.stringify(result.data.config.models)}`);
+                } else {
+                    showResult('testResult', false, `❌ API测试失败: ${result.message}`);
+                }
+            } catch (error) {
+                showResult('testResult', false, `❌ 连接失败: ${error.message}`);
+            } finally {
+                btn.disabled = false;
+                btn.textContent = '测试API连接';
+            }
+        }
+
+        // 页面加载时自动测试API连接
+        window.onload = function() {
+            console.log('🚀 Gemini AI 图像生成测试页面已加载');
+            console.log('📡 API端点:', API_BASE);
+        };
+    </script>
+</body>
+</html>
