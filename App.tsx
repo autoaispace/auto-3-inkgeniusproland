@@ -50,7 +50,8 @@ export default function App() {
 
   const handleStartGeneration = () => {
     setIsToolModalOpen(false);
-    setAppState(AppState.LOADING);
+    // 直接进入生成流程，不再需要邮箱收集
+    console.log('开始生成...');
   };
 
   const handleLoadingComplete = () => {

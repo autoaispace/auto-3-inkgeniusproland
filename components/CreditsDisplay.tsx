@@ -114,7 +114,7 @@ export const CreditsDisplay: React.FC<CreditsDisplayProps> = ({ className = '' }
             {credits?.credits?.toLocaleString() || '0'}
           </span>
         </div>
-        
+
         {/* 悬停时显示更多信息 */}
         <div className="hidden group-hover:block absolute top-full right-0 mt-2 p-3 bg-zinc-900 border border-zinc-700 rounded-lg shadow-xl z-50 min-w-[200px]">
           <div className="text-xs text-zinc-300 space-y-2">
@@ -145,7 +145,7 @@ export const CreditsDisplay: React.FC<CreditsDisplayProps> = ({ className = '' }
               </div>
             )}
             <div className="pt-2 border-t border-zinc-700 space-y-2">
-              <button 
+              <button
                 onClick={(e) => {
                   e.stopPropagation();
                   setShowPaymentModal(true);
@@ -155,8 +155,8 @@ export const CreditsDisplay: React.FC<CreditsDisplayProps> = ({ className = '' }
                 <Plus className="w-3 h-3" />
                 购买积分
               </button>
-              <button 
-                onClick={() => {/* TODO: 打开积分详情页面 */}}
+              <button
+                onClick={() => {/* TODO: 打开积分详情页面 */ }}
                 className="text-blue-400 hover:text-blue-300 text-xs"
               >
                 查看详情 →
