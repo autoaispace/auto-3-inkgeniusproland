@@ -1,0 +1,423 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>完整积分系统测试</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .info {
+            background: #e3f2fd;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .button {
+            display: inline-block;
+            margin: 10px 5px;
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button.success { background: #28a745; }
+        .button.success:hover { background: #1e7e34; }
+        .button.warning { background: #ffc107; color: #000; }
+        .button.warning:hover { background: #e0a800; }
+        .credits-display {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 20px 0;
+        }
+        .credits-number {
+            font-size: 36px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 15px 0;
+        }
+        .table th, .table td {
+            border: 1px solid #dee2e6;
+            padding: 8px 12px;
+            text-align: left;
+        }
+        .table th {
+            background: #f8f9fa;
+            font-weight: bold;
+        }
+        .table tr:nth-child(even) {
+            background: #f8f9fa;
+        }
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .transaction-item {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+        .transaction-credit {
+            border-left: 4px solid #28a745;
+        }
+        .transaction-debit {
+            border-left: 4px solid #dc3545;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 完整积分系统测试</h1>
+        
+        <div class="success">
+            <h3>✅ 积分系统已完善</h3>
+            <p>现在支付完成后会同时更新三个表：</p>
+            <ul>
+                <li>✅ <strong>users表</strong> - 用户基本信息和积分</li>
+                <li>✅ <strong>user_credits表</strong> - 用户积分余额管理</li>
+                <li>✅ <strong>credit_transactions表</strong> - 积分交易记录</li>
+            </ul>
+        </div>
+
+        <div class="credits-display">
+            <div>💰 当前积分余额</div>
+            <div class="credits-number" id="credits-display">--</div>
+            <div id="credits-source">--</div>
+            <div>
+                <button class="button" onclick="fetchCredits()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                    🔄 刷新积分
+                </button>
+                <button class="button success" onclick="testPayment()" style="background: rgba(255,255,255,0.2); border: 1px solid rgba(255,255,255,0.3);">
+                    💳 测试支付
+                </button>
+            </div>
+        </div>
+
+        <div class="info">
+            <h3>📊 数据表结构</h3>
+            <div class="code">
+// users 表 - 用户基本信息
+{
+  _id: ObjectId,
+  user_id: "84335d21-b801-4ce3-90af-71f7d14e47f9",
+  email: "nfkmr920@gmail.com",
+  credits: 1000,  // 基本积分字段
+  createdAt: Date,
+  updatedAt: Date
+}
+
+// user_credits 表 - 积分余额管理
+{
+  _id: ObjectId,
+  user_id: "84335d21-b801-4ce3-90af-71f7d14e47f9",
+  email: "nfkmr920@gmail.com",
+  balance: 1000,        // 当前余额
+  total_earned: 1000,   // 总获得积分
+  total_spent: 0,       // 总消费积分
+  createdAt: Date,
+  updatedAt: Date
+}
+
+// credit_transactions 表 - 交易记录
+{
+  _id: ObjectId,
+  user_id: "84335d21-b801-4ce3-90af-71f7d14e47f9",
+  type: "credit",       // credit(增加) 或 debit(减少)
+  amount: 1000,
+  balance_before: 0,
+  balance_after: 1000,
+  source: "whop_payment",
+  description: "Whop支付充值 - 1000 积分",
+  createdAt: Date
+}
+            </div>
+        </div>
+
+        <h3>🧪 测试功能</h3>
+        
+        <div class="result">
+            <h4>1. 积分余额查询</h4>
+            <button class="button" onclick="fetchCredits()">📊 获取积分余额</button>
+            <div id="credits-result"></div>
+        </div>
+
+        <div class="result">
+            <h4>2. 积分交易记录</h4>
+            <button class="button" onclick="fetchTransactions()">📋 获取交易记录</button>
+            <button class="button warning" onclick="fetchTransactions(50)">📋 获取更多记录</button>
+            <div id="transactions-result"></div>
+        </div>
+
+        <div class="result">
+            <h4>3. MongoDB数据查询</h4>
+            <p>在MongoDB中查看数据的命令：</p>
+            <div class="code">
+// 查看用户积分余额
+db.user_credits.find({}, {email: 1, balance: 1, total_earned: 1, updatedAt: 1})
+
+// 查看特定用户的积分
+db.user_credits.findOne({email: "nfkmr920@gmail.com"})
+
+// 查看积分交易记录
+db.credit_transactions.find().sort({createdAt: -1}).limit(10)
+
+// 查看特定用户的交易记录
+db.credit_transactions.find({email: "nfkmr920@gmail.com"}).sort({createdAt: -1})
+
+// 查看支付记录
+db.payments.find().sort({createdAt: -1}).limit(5)
+            </div>
+        </div>
+
+        <div class="info">
+            <h3>🔄 完整的支付流程</h3>
+            <ol>
+                <li><strong>用户完成支付</strong> → Whop发送webhook</li>
+                <li><strong>用户匹配</strong> → 通过邮箱找到系统用户ID</li>
+                <li><strong>更新users表</strong> → 更新基本积分字段</li>
+                <li><strong>更新user_credits表</strong> → 更新积分余额和统计</li>
+                <li><strong>创建交易记录</strong> → 记录到credit_transactions表</li>
+                <li><strong>创建支付记录</strong> → 记录到payments表</li>
+                <li><strong>前端显示</strong> → 从user_credits表获取最新余额</li>
+            </ol>
+        </div>
+    </div>
+
+    <script>
+        // 获取用户积分
+        async function fetchCredits() {
+            const resultDiv = document.getElementById('credits-result');
+            const creditsDisplay = document.getElementById('credits-display');
+            const creditsSource = document.getElementById('credits-source');
+            
+            try {
+                resultDiv.innerHTML = '<div style="color: #007bff;">🔄 获取积分中...</div>';
+                creditsDisplay.textContent = '...';
+                creditsSource.textContent = '...';
+
+                const userStr = localStorage.getItem('user');
+                if (!userStr) {
+                    throw new Error('用户未登录');
+                }
+
+                const user = JSON.parse(userStr);
+                const token = user.access_token || user.session?.access_token;
+                
+                if (!token) {
+                    throw new Error('未找到访问令牌');
+                }
+
+                const response = await fetch('/api/payment/user/credits', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const credits = data.data.credits;
+                    const source = data.data.source;
+                    const lastUpdated = data.data.lastUpdated;
+                    
+                    creditsDisplay.textContent = credits.toLocaleString();
+                    creditsSource.textContent = `数据来源: ${source}表`;
+                    
+                    resultDiv.innerHTML = `
+                        <div style="color: #28a745;">✅ 积分获取成功</div>
+                        <div><strong>当前余额:</strong> ${credits.toLocaleString()} 积分</div>
+                        <div><strong>数据来源:</strong> ${source} 表</div>
+                        <div><strong>用户邮箱:</strong> ${data.data.email}</div>
+                        <div><strong>最后更新:</strong> ${lastUpdated ? new Date(lastUpdated).toLocaleString() : '未知'}</div>
+                    `;
+                    
+                    console.log('✅ 积分获取成功:', credits, '来源:', source);
+                } else {
+                    throw new Error(data.message || '获取积分失败');
+                }
+
+            } catch (error) {
+                console.error('❌ 获取积分失败:', error);
+                creditsDisplay.textContent = '错误';
+                creditsSource.textContent = '获取失败';
+                resultDiv.innerHTML = `<div style="color: #dc3545;">❌ ${error.message}</div>`;
+            }
+        }
+
+        // 获取交易记录
+        async function fetchTransactions(limit = 10) {
+            const resultDiv = document.getElementById('transactions-result');
+            
+            try {
+                resultDiv.innerHTML = '<div style="color: #007bff;">🔄 获取交易记录中...</div>';
+
+                const userStr = localStorage.getItem('user');
+                if (!userStr) {
+                    throw new Error('用户未登录');
+                }
+
+                const user = JSON.parse(userStr);
+                const token = user.access_token || user.session?.access_token;
+                
+                if (!token) {
+                    throw new Error('未找到访问令牌');
+                }
+
+                const response = await fetch(`/api/payment/user/credit-transactions?limit=${limit}`, {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const transactions = data.data.transactions;
+                    const pagination = data.data.pagination;
+                    
+                    let html = `
+                        <div style="color: #28a745;">✅ 获取到 ${transactions.length} 条交易记录</div>
+                        <div><strong>总记录数:</strong> ${pagination.total}</div>
+                        <div style="margin-top: 15px;">
+                    `;
+                    
+                    if (transactions.length > 0) {
+                        transactions.forEach(tx => {
+                            const typeClass = tx.type === 'credit' ? 'transaction-credit' : 'transaction-debit';
+                            const typeIcon = tx.type === 'credit' ? '➕' : '➖';
+                            const amountColor = tx.type === 'credit' ? '#28a745' : '#dc3545';
+                            
+                            html += `
+                                <div class="transaction-item ${typeClass}">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <div>
+                                            <div><strong>${typeIcon} ${tx.description}</strong></div>
+                                            <div style="font-size: 12px; color: #666;">
+                                                ${new Date(tx.createdAt).toLocaleString()} | 来源: ${tx.source}
+                                            </div>
+                                        </div>
+                                        <div style="text-align: right;">
+                                            <div style="color: ${amountColor}; font-weight: bold;">
+                                                ${tx.type === 'credit' ? '+' : '-'}${tx.amount.toLocaleString()}
+                                            </div>
+                                            <div style="font-size: 12px; color: #666;">
+                                                余额: ${tx.balance_after.toLocaleString()}
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else {
+                        html += '<div style="text-align: center; color: #666; padding: 20px;">暂无交易记录</div>';
+                    }
+                    
+                    html += '</div>';
+                    resultDiv.innerHTML = html;
+                    
+                    console.log('✅ 交易记录获取成功:', transactions.length, '条');
+                } else {
+                    throw new Error(data.message || '获取交易记录失败');
+                }
+
+            } catch (error) {
+                console.error('❌ 获取交易记录失败:', error);
+                resultDiv.innerHTML = `<div style="color: #dc3545;">❌ ${error.message}</div>`;
+            }
+        }
+
+        // 测试支付
+        function testPayment() {
+            const url = 'https://whop.com/checkout/plan_AvXNl6DA1jtOj/';
+            console.log('🚀 打开支付页面:', url);
+            
+            const newWindow = window.open(url, 'whop-payment-test', 'width=800,height=600,scrollbars=yes,resizable=yes');
+            
+            if (!newWindow) {
+                alert('弹窗被阻止，请允许弹窗或手动打开链接');
+            } else {
+                // 支付完成后自动刷新积分和交易记录
+                const checkInterval = setInterval(() => {
+                    if (newWindow.closed) {
+                        clearInterval(checkInterval);
+                        console.log('💳 支付窗口已关闭，刷新数据...');
+                        setTimeout(() => {
+                            fetchCredits();
+                            fetchTransactions();
+                        }, 3000); // 等待3秒让webhook处理完成
+                    }
+                }, 1000);
+            }
+        }
+
+        // 页面加载时自动获取数据
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🎯 完整积分系统测试工具初始化');
+            fetchCredits();
+            fetchTransactions();
+        });
+    </script>
+</body>
+</html>

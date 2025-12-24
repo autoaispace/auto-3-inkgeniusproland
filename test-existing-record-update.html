@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>测试现有记录更新</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        .success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .info {
+            background: #e3f2fd;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .button {
+            display: inline-block;
+            margin: 10px 5px;
+            padding: 12px 24px;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            text-decoration: none;
+            font-size: 14px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .button.success { background: #28a745; }
+        .button.success:hover { background: #1e7e34; }
+        .code {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 15px;
+            font-family: monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            margin: 10px 0;
+        }
+        .result {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            padding: 15px;
+            margin: 15px 0;
+        }
+        .record {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 6px;
+            padding: 12px;
+            margin: 8px 0;
+        }
+        .record.original {
+            border-left: 4px solid #ffc107;
+        }
+        .record.new {
+            border-left: 4px solid #28a745;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 测试现有记录更新</h1>
+        
+        <div class="success">
+            <h3>✅ 问题已修复</h3>
+            <p>现在webhook处理会正确更新现有的user_credits记录，而不是创建新记录：</p>
+            <ul>
+                <li>✅ 通过多种条件查找现有记录</li>
+                <li>✅ 保持原有字段结构</li>
+                <li>✅ 兼容不同的字段名</li>
+                <li>✅ 正确更新积分余额</li>
+            </ul>
+        </div>
+
+        <div class="info">
+            <h3>📋 你的数据结构分析</h3>
+            <p>从你提供的数据可以看到user_credits表中有两条记录：</p>
+            
+            <div class="record original">
+                <h4>🔸 原有记录（应该被更新的）</h4>
+                <div class="code">
+{
+  "_id": "694a6a1428ab3641ff3acc69",
+  "userId": "694a6a1497532de886ec876f",     // 使用userId字段
+  "userName": "Jason White",
+  "userEmail": "nfkmr920@gmail.com",
+  "credits": 100,                           // 使用credits字段存储余额
+  "createdAt": "2025-12-23T10:08:20.077Z",
+  "updatedAt": "2025-12-23T10:08:20.077Z",
+  "lastEarnedAt": "2025-12-23T10:08:20.077Z"
+}
+                </div>
+            </div>
+            
+            <div class="record new">
+                <h4>🔸 新创建的记录（重复的）</h4>
+                <div class="code">
+{
+  "_id": "694b44d60d55db6c8674c998",
+  "user_id": "84335d21-b801-4ce3-90af-71f7d14e47f9", // 使用user_id字段
+  "email": "nfkmr920@gmail.com",
+  "balance": 1000,                          // 使用balance字段存储余额
+  "total_earned": 1000,
+  "total_spent": 0,
+  "createdAt": "2025-12-24T01:41:42.283Z",
+  "updatedAt": "2025-12-24T01:41:42.283Z"
+}
+                </div>
+            </div>
+        </div>
+
+        <div class="warning">
+            <h3>⚠️ 数据清理建议</h3>
+            <p>建议删除重复的新记录，保留原有记录：</p>
+            <div class="code">
+// 删除重复的新记录
+db.user_credits.deleteOne({"_id": ObjectId("694b44d60d55db6c8674c998")})
+
+// 验证只剩下原有记录
+db.user_credits.find({"userEmail": "nfkmr920@gmail.com"})
+            </div>
+        </div>
+
+        <div class="info">
+            <h3>🔄 修复后的查找逻辑</h3>
+            <p>现在系统会使用多种条件查找现有记录：</p>
+            <div class="code">
+// 查找现有user_credits记录的条件
+{
+  $or: [
+    { userId: "694a6a1497532de886ec876f" },        // 原有格式：userId字段
+    { user_id: "84335d21-b801-4ce3-90af-71f7d14e47f9" }, // 新格式：user_id字段
+    { userEmail: "nfkmr920@gmail.com" },           // 通过邮箱匹配
+    { email: "nfkmr920@gmail.com" }                // 通过邮箱匹配（不同字段名）
+  ]
+}
+            </div>
+        </div>
+
+        <h3>🧪 测试功能</h3>
+        
+        <div class="result">
+            <h4>1. 获取当前积分</h4>
+            <button class="button" onclick="fetchCredits()">📊 获取积分</button>
+            <div id="credits-result"></div>
+        </div>
+
+        <div class="result">
+            <h4>2. 测试支付更新</h4>
+            <button class="button success" onclick="testPayment()">💳 测试支付</button>
+            <p>支付完成后应该更新原有记录中的积分（从100增加到1100）</p>
+        </div>
+
+        <div class="result">
+            <h4>3. MongoDB查询验证</h4>
+            <p>支付完成后，在MongoDB中验证：</p>
+            <div class="code">
+// 查看user_credits表中的记录
+db.user_credits.find({"userEmail": "nfkmr920@gmail.com"})
+
+// 应该只有一条记录，且credits字段被更新为 100 + 1000 = 1100
+
+// 查看交易记录
+db.credit_transactions.find({"email": "nfkmr920@gmail.com"}).sort({createdAt: -1})
+            </div>
+        </div>
+
+        <div class="info">
+            <h3>🎯 预期结果</h3>
+            <p>下次支付完成后：</p>
+            <ul>
+                <li>✅ 原有记录的credits字段从100更新为1100</li>
+                <li>✅ lastEarnedAt字段更新为当前时间</li>
+                <li>✅ 不会创建新的user_credits记录</li>
+                <li>✅ 创建新的credit_transactions交易记录</li>
+                <li>✅ 前端正确显示1100积分</li>
+            </ul>
+        </div>
+    </div>
+
+    <script>
+        // 获取用户积分
+        async function fetchCredits() {
+            const resultDiv = document.getElementById('credits-result');
+            
+            try {
+                resultDiv.innerHTML = '<div style="color: #007bff;">🔄 获取积分中...</div>';
+
+                const userStr = localStorage.getItem('user');
+                if (!userStr) {
+                    throw new Error('用户未登录');
+                }
+
+                const user = JSON.parse(userStr);
+                const token = user.access_token || user.session?.access_token;
+                
+                if (!token) {
+                    throw new Error('未找到访问令牌');
+                }
+
+                const response = await fetch('/api/payment/user/credits', {
+                    method: 'GET',
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+
+                const data = await response.json();
+
+                if (data.success) {
+                    const credits = data.data.credits;
+                    const source = data.data.source;
+                    const userObjectId = data.data.userObjectId;
+                    
+                    resultDiv.innerHTML = `
+                        <div style="color: #28a745;">✅ 积分获取成功</div>
+                        <div><strong>当前积分:</strong> ${credits.toLocaleString()}</div>
+                        <div><strong>数据来源:</strong> ${source} 表</div>
+                        <div><strong>用户邮箱:</strong> ${data.data.email}</div>
+                        <div><strong>用户ObjectId:</strong> ${userObjectId}</div>
+                        <div><strong>最后更新:</strong> ${data.data.lastUpdated ? new Date(data.data.lastUpdated).toLocaleString() : '未知'}</div>
+                    `;
+                    
+                    console.log('✅ 积分获取成功:', credits, '来源:', source);
+                } else {
+                    throw new Error(data.message || '获取积分失败');
+                }
+
+            } catch (error) {
+                console.error('❌ 获取积分失败:', error);
+                resultDiv.innerHTML = `<div style="color: #dc3545;">❌ ${error.message}</div>`;
+            }
+        }
+
+        // 测试支付
+        function testPayment() {
+            const url = 'https://whop.com/checkout/plan_AvXNl6DA1jtOj/';
+            console.log('🚀 打开支付页面:', url);
+            
+            const newWindow = window.open(url, 'whop-payment-test', 'width=800,height=600,scrollbars=yes,resizable=yes');
+            
+            if (!newWindow) {
+                alert('弹窗被阻止，请允许弹窗或手动打开链接');
+            } else {
+                // 支付完成后自动刷新积分
+                const checkInterval = setInterval(() => {
+                    if (newWindow.closed) {
+                        clearInterval(checkInterval);
+                        console.log('💳 支付窗口已关闭，刷新积分...');
+                        setTimeout(() => {
+                            fetchCredits();
+                        }, 3000); // 等待3秒让webhook处理完成
+                    }
+                }, 1000);
+            }
+        }
+
+        // 页面加载时自动获取积分
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🔧 现有记录更新测试工具初始化');
+            fetchCredits();
+        });
+    </script>
+</body>
+</html>
