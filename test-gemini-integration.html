@@ -105,15 +105,6 @@
             <h2>文生图测试</h2>
             <textarea id="textPrompt" placeholder="描述你想要的纹身设计..." rows="3">A traditional dragon tattoo design with intricate details, black and white, suitable for arm placement</textarea>
             
-            <select id="textStyle">
-                <option value="realistic">Realistic</option>
-                <option value="traditional">Traditional</option>
-                <option value="minimalist">Minimalist</option>
-                <option value="geometric">Geometric</option>
-                <option value="watercolor">Watercolor</option>
-                <option value="blackwork">Blackwork</option>
-            </select>
-            
             <button onclick="generateTextToImage()" id="textBtn">生成图像</button>
             
             <div id="textResult"></div>
@@ -126,15 +117,6 @@
             <h2>图生图测试</h2>
             <input type="file" id="imageFile" accept="image/*">
             <textarea id="imagePrompt" placeholder="描述如何修改图像..." rows="3">Transform this into a traditional tattoo style with bold outlines</textarea>
-            
-            <select id="imageStyle">
-                <option value="realistic">Realistic</option>
-                <option value="traditional">Traditional</option>
-                <option value="minimalist">Minimalist</option>
-                <option value="geometric">Geometric</option>
-                <option value="watercolor">Watercolor</option>
-                <option value="blackwork">Blackwork</option>
-            </select>
             
             <button onclick="generateImageToImage()" id="imageBtn">生成图像</button>
             
@@ -198,7 +180,6 @@
 
         async function generateTextToImage() {
             const prompt = document.getElementById('textPrompt').value.trim();
-            const style = document.getElementById('textStyle').value;
             const btn = document.getElementById('textBtn');
             
             if (!prompt) {
@@ -220,7 +201,6 @@
                     },
                     body: JSON.stringify({
                         prompt,
-                        style,
                         width: 512,
                         height: 512
                     })
@@ -244,7 +224,6 @@
         async function generateImageToImage() {
             const fileInput = document.getElementById('imageFile');
             const prompt = document.getElementById('imagePrompt').value.trim();
-            const style = document.getElementById('imageStyle').value;
             const btn = document.getElementById('imageBtn');
             
             if (!fileInput.files[0]) {
@@ -265,7 +244,6 @@
                 const formData = new FormData();
                 formData.append('image', fileInput.files[0]);
                 formData.append('prompt', prompt);
-                formData.append('style', style);
                 formData.append('strength', '0.7');
                 formData.append('width', '512');
                 formData.append('height', '512');

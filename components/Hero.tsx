@@ -68,7 +68,6 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [style, setStyle] = useState('realistic');
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   const handleMouseMove = (e: React.MouseEvent<HTMLElement>) => {
@@ -122,12 +121,59 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
         }
         
         result = await imageGenService.generateImageFromText(prompt, {
-          style,
+          width: 512,
+          height: 512
+        });
+      } else if (activeTab === TabMode.STENCIL) {
+        // STENCIL - 纹身模板生成
+        if (!selectedFile) {
+          setError('请选择图像文件');
+          return;
+        }
+        
+        if (!prompt.trim()) {
+          setError('请输入修改描述');
+          return;
+        }
+        
+        result = await imageGenService.generateStencil(prompt, selectedFile, {
+          width: 512,
+          height: 512
+        });
+      } else if (activeTab === TabMode.TRY_ON) {
+        // TRY-ON - 纹身试穿效果
+        if (!selectedFile) {
+          setError('请选择图像文件');
+          return;
+        }
+        
+        if (!prompt.trim()) {
+          setError('请输入修改描述');
+          return;
+        }
+        
+        result = await imageGenService.generateTryOn(prompt, selectedFile, {
+          width: 512,
+          height: 512
+        });
+      } else if (activeTab === TabMode.COVER_UP) {
+        // COVER-UP - 纹身遮盖设计
+        if (!selectedFile) {
+          setError('请选择图像文件');
+          return;
+        }
+        
+        if (!prompt.trim()) {
+          setError('请输入修改描述');
+          return;
+        }
+        
+        result = await imageGenService.generateCoverUp(prompt, selectedFile, {
           width: 512,
           height: 512
         });
       } else {
-        // 图生图
+        // 图生图 (保留原有逻辑作为备用)
         if (!selectedFile) {
           setError('请选择图像文件');
           return;
@@ -139,7 +185,6 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
         }
         
         result = await imageGenService.generateImageFromImage(prompt, selectedFile, {
-          style,
           strength: 0.7,
           width: 512,
           height: 512
@@ -358,23 +403,6 @@ export const Hero: React.FC<HeroProps> = ({ activeTab, setActiveTab, onGenerate,
                             {error}
                           </div>
                         )}
-
-                        {/* 风格选择 */}
-                        <div className="mb-4">
-                          <label className="block text-xs text-zinc-400 mb-2">Style</label>
-                          <select 
-                            value={style} 
-                            onChange={(e) => setStyle(e.target.value)}
-                            className="w-full bg-zinc-900 border border-zinc-700 rounded px-3 py-2 text-white text-sm focus:outline-none focus:border-white"
-                          >
-                            <option value="realistic">Realistic</option>
-                            <option value="traditional">Traditional</option>
-                            <option value="minimalist">Minimalist</option>
-                            <option value="geometric">Geometric</option>
-                            <option value="watercolor">Watercolor</option>
-                            <option value="blackwork">Blackwork</option>
-                          </select>
-                        </div>
 
                         {/* Prompt Input / File Upload */}
                         {activeTab === TabMode.DESIGN ? (

@@ -26,7 +26,6 @@ export class ImageGenerationService {
   async generateImageFromText(
     prompt: string, 
     options: {
-      style?: string;
       width?: number;
       height?: number;
       negativePrompt?: string;
@@ -54,7 +53,6 @@ export class ImageGenerationService {
         },
         body: JSON.stringify({
           prompt,
-          style: options.style,
           width: options.width || 512,
           height: options.height || 512,
           negativePrompt: options.negativePrompt
@@ -86,7 +84,6 @@ export class ImageGenerationService {
     prompt: string,
     imageFile: File,
     options: {
-      style?: string;
       strength?: number;
       width?: number;
       height?: number;
@@ -107,7 +104,6 @@ export class ImageGenerationService {
       const formData = new FormData();
       formData.append('prompt', prompt);
       formData.append('image', imageFile);
-      if (options.style) formData.append('style', options.style);
       if (options.strength) formData.append('strength', options.strength.toString());
       if (options.width) formData.append('width', options.width.toString());
       if (options.height) formData.append('height', options.height.toString());
@@ -143,7 +139,6 @@ export class ImageGenerationService {
     prompt: string,
     imageData: string,
     options: {
-      style?: string;
       strength?: number;
       width?: number;
       height?: number;
@@ -170,7 +165,6 @@ export class ImageGenerationService {
         body: JSON.stringify({
           prompt,
           imageData,
-          style: options.style,
           strength: options.strength || 0.7,
           width: options.width || 512,
           height: options.height || 512
@@ -194,8 +188,163 @@ export class ImageGenerationService {
   }
 
   /**
-   * 获取生成历史
+   * STENCIL - 生成纹身模板
    */
+  async generateStencil(
+    prompt: string,
+    imageFile: File,
+    options: {
+      width?: number;
+      height?: number;
+    } = {}
+  ): Promise<{
+    success: boolean;
+    imageData?: string;
+    error?: string;
+    metadata?: any;
+  }> {
+    try {
+      const token = this.getAuthToken();
+      
+      if (!token) {
+        throw new Error('请先登录');
+      }
+      
+      const formData = new FormData();
+      formData.append('prompt', prompt);
+      formData.append('image', imageFile);
+      if (options.width) formData.append('width', options.width.toString());
+      if (options.height) formData.append('height', options.height.toString());
+
+      const response = await fetch(`${this.baseUrl}/api/gemini/stencil`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'STENCIL生成失败');
+      }
+
+      return result;
+    } catch (error) {
+      console.error('STENCIL生成失败:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'STENCIL生成失败'
+      };
+    }
+  }
+
+  /**
+   * TRY-ON - 生成纹身试穿效果
+   */
+  async generateTryOn(
+    prompt: string,
+    imageFile: File,
+    options: {
+      width?: number;
+      height?: number;
+    } = {}
+  ): Promise<{
+    success: boolean;
+    imageData?: string;
+    error?: string;
+    metadata?: any;
+  }> {
+    try {
+      const token = this.getAuthToken();
+      
+      if (!token) {
+        throw new Error('请先登录');
+      }
+      
+      const formData = new FormData();
+      formData.append('prompt', prompt);
+      formData.append('image', imageFile);
+      if (options.width) formData.append('width', options.width.toString());
+      if (options.height) formData.append('height', options.height.toString());
+
+      const response = await fetch(`${this.baseUrl}/api/gemini/try-on`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'TRY-ON生成失败');
+      }
+
+      return result;
+    } catch (error) {
+      console.error('TRY-ON生成失败:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'TRY-ON生成失败'
+      };
+    }
+  }
+
+  /**
+   * COVER-UP - 生成纹身遮盖设计
+   */
+  async generateCoverUp(
+    prompt: string,
+    imageFile: File,
+    options: {
+      width?: number;
+      height?: number;
+    } = {}
+  ): Promise<{
+    success: boolean;
+    imageData?: string;
+    error?: string;
+    metadata?: any;
+  }> {
+    try {
+      const token = this.getAuthToken();
+      
+      if (!token) {
+        throw new Error('请先登录');
+      }
+      
+      const formData = new FormData();
+      formData.append('prompt', prompt);
+      formData.append('image', imageFile);
+      if (options.width) formData.append('width', options.width.toString());
+      if (options.height) formData.append('height', options.height.toString());
+
+      const response = await fetch(`${this.baseUrl}/api/gemini/cover-up`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+        },
+        body: formData,
+      });
+
+      const result = await response.json();
+      
+      if (!response.ok) {
+        throw new Error(result.message || 'COVER-UP生成失败');
+      }
+
+      return result;
+    } catch (error) {
+      console.error('COVER-UP生成失败:', error);
+      return {
+        success: false,
+        error: error instanceof Error ? error.message : 'COVER-UP生成失败'
+      };
+    }
+  }
   async getGenerationHistory(limit: number = 20, offset: number = 0) {
     try {
       const token = this.getAuthToken();
